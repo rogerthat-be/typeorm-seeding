@@ -4,41 +4,24 @@
 <h1 align="center" style="text-align: center;">TypeORM Seeding</h1>
 
 <p align="center">
-  <img alt="NPM" src="https://img.shields.io/npm/l/@jorgebodega/typeorm-seeding?style=for-the-badge">
-  <a href="https://www.npmjs.com/package/@jorgebodega/typeorm-seeding">
-    <img alt="NPM latest version" src="https://img.shields.io/npm/v/@jorgebodega/typeorm-seeding/latest?style=for-the-badge">
-  </a>
-  <a href="https://www.npmjs.com/package/@jorgebodega/typeorm-seeding/v/next">
-    <img alt="NPM next version" src="https://img.shields.io/npm/v/@jorgebodega/typeorm-seeding/next?style=for-the-badge">
-  </a>
-  <a href="https://github.com/semantic-release/semantic-release">
-    <img src="https://img.shields.io/badge/semantic--release-angular-e10079?logo=semantic-release&style=for-the-badge" alt="Semantic release" />
-  </a> 
-</p>
-
-<p align="center">
-  <a href='https://coveralls.io/github/jorgebodega/typeorm-seeding'>
-    <img alt="Coveralls master branch" src="https://img.shields.io/coveralls/github/jorgebodega/typeorm-seeding/master?style=for-the-badge">
-  </a>
-  <a href='https://coveralls.io/github/jorgebodega/typeorm-seeding?branch=next'>
-    <img alt="Coveralls next branch" src="https://img.shields.io/coveralls/github/jorgebodega/typeorm-seeding/next?style=for-the-badge&label=coverage%40next">
+  <img alt="NPM" src="https://img.shields.io/npm/l/@conceptadev/typeorm-seeding?style=for-the-badge">
+  <a href="https://www.npmjs.com/package/@conceptadev/typeorm-seeding">
+    <img alt="NPM latest version" src="https://img.shields.io/npm/v/@conceptadev/typeorm-seeding/latest?style=for-the-badge">
   </a>
 </p>
 
 <p align="center">
-  <img alt="Checks for master branch" src="https://img.shields.io/github/checks-status/jorgebodega/typeorm-seeding/master?style=for-the-badge">
-  <a href='https://coveralls.io/github/jorgebodega/typeorm-seeding'>
-    <img alt="Checks for next branch" src="https://img.shields.io/github/checks-status/jorgebodega/typeorm-seeding/next?label=checks%40next&style=for-the-badge">
-  </a>
+  <b>A simple but powerful database seeder for TypeORM ^0.3.0</b></br>
 </p>
 
 <p align="center">
-  <b>A delightful way to seed test data into your database.</b></br>
-  <span>Inspired by the awesome framework <a href="https://laravel.com/">laravel</a> in PHP, <a href="https://mikro-orm.io/docs/next/seeding/">MikroORM seeding</a>  and the repositories from <a href="https://github.com/pleerock">pleerock</a></span></br>
+  <sub>A <a href="https://github.com/conceptadev">Concepta</a> Fork of <a href="https://github.com/w3tecch/typeorm-seeding">TypeORM Seeding</a></sub>
 </p>
 
 <p align="center">
-  <sub>Made with ❤️ by <a href="https://github.com/hirsch88">Gery Hirschfeld</a>, <a href="https://github.com/jorgebodega">Jorge Bodega</a> and <a href="https://github.com/w3tecch/typeorm-seeding/graphs/contributors">contributors</a></sub>
+  <sub>Originally authored and maintained by <a href="https://github.com/hirsch88">Gery Hirschfeld</a>,
+  <a href="https://github.com/jorgebodega">Jorge Bodega</a> and
+  <a href="https://github.com/w3tecch/typeorm-seeding/graphs/contributors">Contributors</a></sub>
 </p>
 
 <br />
@@ -57,22 +40,32 @@ Before using this TypeORM extension please read the [TypeORM Getting Started](ht
 After that install the extension with `npm` or `yarn`. Add development flag if you are not using seeders nor factories in production code.
 
 ```bash
-npm i [-D] @jorgebodega/typeorm-seeding
-yarn add [-D] @jorgebodega/typeorm-seeding
+npm i [-D] @conceptadev/typeorm-seeding
+yarn add [-D] @conceptadev/typeorm-seeding
+
+> This module requires TypeORM 0.3.0 and higher.
 ```
 
 ### Configuration
 
 To configure the path to your seeders change the TypeORM config file or use environment variables like TypeORM. If both are used the environment variables will be prioritized.
 
-**ormconfig.js**
+**ormconfig.(ts|js|json)**
 
 ```typescript
 module.exports = {
-  ...
+  type: 'sqlite',
+  database: ':memory:',
+  entities: ['test/entities/**/*{.ts,.js}'],
+}
+```
+
+**seeding.(ts|js|json)**
+
+```typescript
+module.exports = {
   seeders: ['src/seeds/**/*{.ts,.js}'],
-  defaultSeeder: RootSeeder,
-  ...
+  defaultSeeder: 'RootSeeder',
 }
 ```
 
@@ -85,7 +78,7 @@ TYPEORM_SEEDING_DEFAULT_SEEDER=RootSeeder
 
 ## Introduction
 
-Isn't it exhausting to create some sample data for your database, well this time is over!
+Isn't it exhausting to create some sample data for your database? Well this time is over!
 
 How does it work? Just create a entity factory and/or seed script.
 
@@ -131,7 +124,9 @@ export class UserExampleSeeder extends Seeder {
 
 ## Factory
 
-Factory is how we provide a way to simplify entities creation, implementing a [factory creational pattern](https://refactoring.guru/design-patterns/factory-method). It is defined as an abstract class with generic typing, so you have to extend over it.
+Factory is how we provide a way to simplify entities creation, implementing a
+[factory creational pattern](https://refactoring.guru/design-patterns/factory-method).
+It is defined as an abstract class with generic typing, so you have to extend over it.
 
 ```typescript
 class UserFactory extends Factory<User> {
@@ -143,7 +138,8 @@ class UserFactory extends Factory<User> {
 
 ### `definition`
 
-This function is the one that needs to be defined when extending the class. It is called to instantiate the entity and the result will be used on the rest of factory lifecycle.
+This function is the one that needs to be defined when extending the class.
+It is called to instantiate the entity and the result will be used on the rest of factory lifecycle.
 
 ```typescript
 protected definition(): User {
@@ -228,25 +224,11 @@ As the order of execution can be complex, you can check it here:
 
 ### Faker
 
-[Faker](https://github.com/marak/Faker.js/) package was previously a dependency of the project, but now it is optional due to its size. If you want to use faker, you may need to install it and import it.
-
-Instead of the previous example:
-
-```typescript
-define(User, (faker: typeof Faker) => {
-  const firstName = faker.name.firstName()
-  const lastName = faker.name.lastName()
-
-  const user = new User()
-  user.name = `${firstName} ${lastName}`
-  return user
-})
-```
-
-You can do:
+[Faker](https://github.com/marak/Faker.js/) package was previously a dependency of the project,
+but now it is optional due to its size. If you want to use faker, you may need to install it and import it.
 
 ```typescript
-import * as faker from 'faker'
+import { faker } from '@faker-js/faker'
 
 class UserFactory extends Factory<User> {
   protected definition(): User {
@@ -262,12 +244,15 @@ class UserFactory extends Factory<User> {
 
 ## Seeder
 
-Seeder class is how we provide a way to insert data into databases, and could be executed by the command line or by helper method. Is an abstract class with one method to be implemented, and a helper function to run some more seeder sequentially.
+Seeder class is how we provide a way to insert data into databases,
+and could be executed by the command line or by helper method.
+
+It is an abstract class with one method to be implemented, and a helper function to run some more seeder sequentially.
 
 ```typescript
 class UserSeeder extends Seeder {
-  async run(connection: Connection) {
-    ...
+  async run(dataSource: DataSource) {
+    // ...
   }
 }
 ```
@@ -277,14 +262,13 @@ class UserSeeder extends Seeder {
 This function is the one that needs to be defined when extending the class. Could use `call` to run some other seeders.
 
 ```typescript
-run(connection: Connection): Promise<void>
+run(dataSource: DataSource): Promise<void>
 ```
 
 ```typescript
-async run(connection: Connection) {
+async run(dataSource: DataSource) {
     await new UserFactory().createMany(10)
-
-    await this.call(connection, [PetSeeder])
+    await this.call(dataSource, [PetSeeder])
 }
 ```
 
@@ -308,13 +292,12 @@ Add the following scripts to your `package.json` file to configure them.
 "scripts": {
   "seed:config": "typeorm-seeding config",
   "seed:run": "typeorm-seeding seed",
-  ...
 }
 ```
 
 ### `config`
 
-This command just print the connection configuration.
+This command just prints the seeder configuration.
 
 ```bash
 typeorm-seeding config
@@ -324,10 +307,6 @@ Example result
 
 ```json
 {
-  "name": "default",
-  "type": "sqlite",
-  "database": "/home/jorgebodega/projects/typeorm-seeding/test.db",
-  "entities": ["sample/entities/**/*{.ts,.js}"],
   "seeders": ["sample/seeders/**/*{.ts,.js}"],
   "defaultSeeder": "RootSeeder"
 }
@@ -335,12 +314,10 @@ Example result
 
 ##### Options
 
-| Option                 | Default               | Description                                                                  |
-| ---------------------- | --------------------- | ---------------------------------------------------------------------------- |
-| `--seed` or `-s`       | null                  | Option to specify a seeder class to run individually. (Only on seed command) |
-| `--connection` or `-c` | TypeORM default value | Name of the TypeORM connection. Required if there are multiple connections.  |
-| `--configName` or `-n` | TypeORM default value | Name to the TypeORM config file.                                             |
-| `--root` or `-r`       | TypeORM default value | Path to the TypeORM config file.                                             |
+| Option                   | Default         | Description                                      |
+| ------------------------ | --------------- | ------------------------------------------------ |
+| `--root` or `-r`         | `process.cwd()` | Path to the project root                         |
+| `--seederConfig` or `-c` | `seeding.ts`    | Relative path to the seeding config from `root`. |
 
 ### `seed`
 
@@ -352,16 +329,16 @@ typeorm-seeding seed
 
 ##### Options
 
-| Option                 | Default                              | Description                                                                 |
-| ---------------------- | ------------------------------------ | --------------------------------------------------------------------------- |
-| `--seed` or `-s`       | Default seeder specified config file | Option to specify a seeder class to run individually.                       |
-| `--connection` or `-c` | TypeORM default value                | Name of the TypeORM connection. Required if there are multiple connections. |
-| `--configName` or `-n` | TypeORM default value                | Name to the TypeORM config file.                                            |
-| `--root` or `-r`       | TypeORM default value                | Path to the TypeORM config file.                                            |
+| Option                       | Default         | Description                                              |
+| ---------------------------- | --------------- | -------------------------------------------------------- |
+| `--root` or `-r`             | `process.cwd()` | Path to the project root                                 |
+| `--dataSourceConfig` or `-d` | `ormconfig.ts`  | Relative path to TypeORM data source config from `root`. |
+| `--seederConfig` or `-c`     | `seeding.ts`    | Relative path to the seeding config from `root`.         |
+| `--seed` or `-s`             |                 | Run a specific seeder class to run individually.         |
 
 ## Testing features
 
-We provide some testing features that we already use to test this package, like connection configuration.
+We provide some testing features that we already use to test this package, like data source configuration.
 The entity factories can also be used in testing. To do so call the `useFactories` or `useSeeders` function.
 
 ### `useSeeders`
@@ -369,10 +346,9 @@ The entity factories can also be used in testing. To do so call the `useFactorie
 Execute one or more seeders.
 
 ```typescript
-useSeeders(entrySeeders: ClassConstructor<Seeder> | ClassConstructor<Seeder>[]): Promise<void>
 useSeeders(
   entrySeeders: ClassConstructor<Seeder> | ClassConstructor<Seeder>[],
-  customOptions: Partial<ConnectionConfiguration>,
+  customOptions?: Partial<DataSourceConfiguration>,
 ): Promise<void>
 ```
 

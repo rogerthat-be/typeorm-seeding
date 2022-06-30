@@ -1,10 +1,11 @@
 {
-  "name": "@jorgebodega/typeorm-seeding",
-  "version": "3.2.0",
-  "description": "🌱 A delightful way to seed test data into your database.",
+  "name": "@conceptadev/typeorm-seeding",
+  "version": "4.0.0-alpha.1",
+  "description": "A simple but powerful database seeder for TypeORM ^0.3.0",
   "license": "MIT",
-  "author": "Gery Hirschfeld <gery.hirschfeld@w3tec.ch> (https://github.com/hirsch88)",
+  "author": "Concepta (https://github.com/conceptadev)",
   "contributors": [
+    "Gery Hirschfeld <gery.hirschfeld@w3tec.ch> (https://github.com/hirsch88)",
     "Jorge Bodega <jorge.bodega.f@gmail.com> (https://github.com/jorgebodega)"
   ],
   "main": "dist/index.js",
@@ -14,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jorgebodega/typeorm-seeding.git"
+    "url": "https://github.com/conceptadev/typeorm-seeding.git"
   },
   "scripts": {
     "build": "tsc --project ./tsconfig.build.json",
@@ -60,7 +61,7 @@
     "sqlite3": "5.0.2",
     "ts-jest": "27.1.2",
     "ts-node": "10.4.0",
-    "typeorm": "0.2.41",
+    "typeorm": "0.3.6",
     "typescript": "4.5.4"
   },
   "dependencies": {
@@ -71,7 +72,7 @@
     "yargs": "^17.3.0"
   },
   "peerDependencies": {
-    "typeorm": "^0.2.41"
+    "typeorm": "^0.3.0"
   },
   "resolutions": {
     "mem": ">=4.0.0"

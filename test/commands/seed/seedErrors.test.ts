@@ -1,5 +1,5 @@
-import yargs from 'yargs'
 import { SeedCommand } from '../../../src/commands/seed.command'
+import yargs from 'yargs'
 
 describe(SeedCommand, () => {
   let command: SeedCommand
@@ -14,7 +14,7 @@ describe(SeedCommand, () => {
     test('Should throw error if config file is not valid', async () => {
       jest.spyOn(process, 'exit').mockImplementationOnce(exitFn as any)
 
-      await yargs.command(command).parse('seed -n foo')
+      await yargs.command(command).parse('seed -c foo')
 
       expect(exitFn).toHaveBeenNthCalledWith(1, 1)
     })

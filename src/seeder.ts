@@ -1,12 +1,12 @@
-import type { Connection } from 'typeorm'
 import type { ClassConstructor } from './types'
+import type { DataSource } from 'typeorm'
 
 export abstract class Seeder {
-  abstract run(connection: Connection): Promise<void>
+  abstract run(dataSource: DataSource): Promise<void>
 
-  protected async call(connection: Connection, seeders: ClassConstructor<Seeder>[]): Promise<void> {
+  protected async call(dataSource: DataSource, seeders: ClassConstructor<Seeder>[]): Promise<void> {
     for (const seeder of seeders) {
-      await new seeder().run(connection)
+      await new seeder().run(dataSource)
     }
   }
 }

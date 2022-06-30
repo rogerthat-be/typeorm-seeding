@@ -1,25 +1,27 @@
-import type { Connection } from 'typeorm'
-import { configureConnection, Factory, fetchConnection } from '../src'
+import { Factory, fetchDataSource, reconfigureDataSource } from '../src'
+
+import type { DataSource } from 'typeorm'
 import { Pet } from './entities/Pet.entity'
-import { User } from './entities/User.entity'
 import { PetFactory } from './factories/Pet.factory'
+import { User } from './entities/User.entity'
 import { UserFactory } from './factories/User.factory'
 
 describe(Factory, () => {
-  let connection: Connection
+  let dataSource: DataSource
   const userFactory = new UserFactory()
   const petFactory = new PetFactory()
 
   beforeEach(async () => {
-    configureConnection({ connection: 'memory' })
-    connection = await fetchConnection()
-
-    await connection.synchronize()
+    reconfigureDataSource({
+      root: __dirname,
+      dataSourceConfig: 'ormconfig.ts',
+    })
+    dataSource = await fetchDataSource()
   })
 
   afterEach(async () => {
-    await connection.dropDatabase()
-    await connection.close()
+    await dataSource.dropDatabase()
+    await dataSource.destroy()
   })
 
   describe(Factory.prototype.make, () => {

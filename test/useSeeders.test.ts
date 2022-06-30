@@ -1,29 +1,31 @@
-import type { Connection } from 'typeorm'
-import { configureConnection, fetchConnection, useSeeders } from '../src'
+import { fetchDataSource, reconfigureDataSource, useSeeders } from '../src'
+
+import type { DataSource } from 'typeorm'
 import { Pet } from './entities/Pet.entity'
-import { User } from './entities/User.entity'
 import { PetSeeder } from './seeders/Pet.seeder'
+import { User } from './entities/User.entity'
 import { UserSeeder } from './seeders/User.seeder'
 
 describe(useSeeders, () => {
-  let connection: Connection
+  let dataSource: DataSource
 
   beforeEach(async () => {
-    configureConnection({ connection: 'memory' })
-    connection = await fetchConnection()
-
-    await connection.synchronize()
+    reconfigureDataSource({
+      root: __dirname,
+      dataSourceConfig: 'ormconfig.ts',
+    })
+    dataSource = await fetchDataSource()
   })
 
   afterEach(async () => {
-    await connection.dropDatabase()
-    await connection.close()
+    await dataSource.dropDatabase()
+    await dataSource.destroy()
   })
 
   test(`Should seed with only one seeder provided`, async () => {
     await useSeeders(UserSeeder)
 
-    const totalUsers = await connection.createEntityManager().count(User)
+    const totalUsers = await dataSource.createEntityManager().count(User)
 
     expect(totalUsers).toBe(20)
   })
@@ -32,8 +34,8 @@ describe(useSeeders, () => {
     await useSeeders([UserSeeder, PetSeeder])
 
     const [totalUsers, totalPets] = await Promise.all([
-      connection.createEntityManager().count(User),
-      connection.createEntityManager().count(Pet),
+      dataSource.createEntityManager().count(User),
+      dataSource.createEntityManager().count(Pet),
     ])
 
     expect(totalUsers).toBe(30)
@@ -41,11 +43,9 @@ describe(useSeeders, () => {
   })
 
   test(`Should seed with custom options`, async () => {
-    await useSeeders(UserSeeder, {
-      connection: 'memory',
-    })
+    await useSeeders(UserSeeder)
 
-    const totalUsers = await connection.createEntityManager().count(User)
+    const totalUsers = await dataSource.createEntityManager().count(User)
 
     expect(totalUsers).toBe(20)
   })

@@ -1,14 +1,16 @@
-import type { ConnectionOptions as TypeORMConnectionOptions } from 'typeorm'
+import type { DataSource, DataSourceOptions } from 'typeorm'
 
 export type ClassConstructor<T> = new () => T
 
-export type ConnectionOptions = TypeORMConnectionOptions & {
-  seeders: string[]
-  defaultSeeder: string
+export type SeederOptions = {
+  seeders?: string[]
+  defaultSeeder?: string
 }
 
-export type ConnectionConfiguration = {
+export type DataSourceConfiguration = {
   root?: string
-  configName?: string
-  connection: string
+  dataSource?: DataSource
+  dataSourceOptions?: DataSourceOptions
+  dataSourceConfig?: string
+  seederConfig?: string
 }

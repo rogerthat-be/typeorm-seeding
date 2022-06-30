@@ -1,5 +1,5 @@
 import type { SaveOptions } from 'typeorm'
-import { fetchConnection } from './connection'
+import { fetchDataSource } from './data-source'
 import { isPromiseLike } from './utils/isPromiseLike'
 
 export abstract class Factory<Entity> {
@@ -39,8 +39,8 @@ export abstract class Factory<Entity> {
   async create(overrideParams: Partial<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity> {
     const entity = await this.makeEntity(overrideParams, true)
 
-    const connection = await fetchConnection()
-    return connection.createEntityManager().save<Entity>(entity, saveOptions)
+    const dataSource = await fetchDataSource()
+    return dataSource.createEntityManager().save<Entity>(entity, saveOptions)
   }
 
   /**

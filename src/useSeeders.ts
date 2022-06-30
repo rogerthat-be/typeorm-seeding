@@ -1,23 +1,19 @@
-import { configureConnection, fetchConnection } from './connection'
+import type { ClassConstructor, DataSourceConfiguration } from './types'
+import { configureDataSource, fetchDataSource } from './data-source'
+
 import { Seeder } from './seeder'
-import type { ClassConstructor, ConnectionConfiguration } from './types'
-
-export async function useSeeders(entrySeeders: ClassConstructor<Seeder> | ClassConstructor<Seeder>[]): Promise<void>
-export async function useSeeders(
-  entrySeeders: ClassConstructor<Seeder> | ClassConstructor<Seeder>[],
-  customOptions: Partial<ConnectionConfiguration>,
-): Promise<void>
 
 export async function useSeeders(
   entrySeeders: ClassConstructor<Seeder> | ClassConstructor<Seeder>[],
-  customOptions?: Partial<ConnectionConfiguration>,
+  customOptions?: Partial<DataSourceConfiguration>,
 ): Promise<void> {
-  if (customOptions) configureConnection(customOptions)
+  if (customOptions) configureDataSource(customOptions)
 
-  const connection = await fetchConnection()
+  const dataSource = await fetchDataSource()
 
   const seeders = Array.isArray(entrySeeders) ? entrySeeders : [entrySeeders]
+
   for (const seeder of seeders) {
-    await new seeder().run(connection)
+    await new seeder().run(dataSource)
   }
 }

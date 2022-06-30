@@ -1,18 +1,19 @@
 import { Arguments, Argv, CommandModule, exit } from 'yargs'
+import { configureDataSource, getSeederOptions } from '../data-source'
 import ora, { Ora } from 'ora'
-import { gray } from 'chalk'
-import { configureConnection, getConnectionOptions } from '../connection'
-import { Seeder } from '../seeder'
-import { useSeeders } from '../useSeeders'
-import { calculateFilePaths } from '../utils/fileHandling'
-import type { ConnectionOptions } from '../types'
-import { SeederImportationError } from '../errors/SeederImportationError'
+
 import { ClassConstructor } from '../types'
+import { Seeder } from '../seeder'
+import { SeederImportationError } from '../errors/SeederImportationError'
+import type { SeederOptions } from '../types'
+import { calculateFilePaths } from '../utils/fileHandling'
+import { gray } from 'chalk'
+import { useSeeders } from '../useSeeders'
 
 interface SeedCommandArguments extends Arguments {
   root?: string
-  configName?: string
-  connection?: string
+  dataSourceConfig?: string
+  seederConfig?: string
   seed?: string
 }
 
@@ -25,21 +26,21 @@ export class SeedCommand implements CommandModule {
    */
   builder(args: Argv) {
     return args
-      .option('n', {
-        alias: 'configName',
-        type: 'string',
-        describe: 'Name of the typeorm config file (json or js).',
-      })
-      .option('c', {
-        alias: 'connection',
-        type: 'string',
-        default: 'default',
-        describe: 'Name of the typeorm connection',
-      })
       .option('r', {
         alias: 'root',
         type: 'string',
-        describe: 'Path to your typeorm config file',
+        describe: 'Path to project root',
+        default: process.cwd(),
+      })
+      .option('d', {
+        alias: 'dataSourceConfig',
+        type: 'string',
+        describe: 'Path to the data source config file.',
+      })
+      .option('c', {
+        alias: 'seederConfig',
+        type: 'string',
+        describe: 'Path to the seeder config file.',
       })
       .option('s', {
         alias: 'seed',
@@ -55,14 +56,12 @@ export class SeedCommand implements CommandModule {
     const spinner = ora({ text: 'Loading ormconfig', isSilent: process.env.NODE_ENV === 'test' }).start()
 
     // Get TypeORM config file
-    let options!: ConnectionOptions
+    let options!: SeederOptions
+
     try {
-      configureConnection({
-        root: args.root,
-        configName: args.configName,
-        connection: args.connection,
-      })
-      options = await getConnectionOptions()
+      const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
+      configureDataSource({ ...args, root: rootPath })
+      options = await getSeederOptions()
       spinner.succeed('ORM Config loaded')
     } catch (error) {
       panic(spinner, error as Error, 'Could not load the config file!')
@@ -72,18 +71,39 @@ export class SeedCommand implements CommandModule {
     // Show seeder in console
     spinner.start('Importing Seeder')
     let seeder!: ClassConstructor<Seeder>
+
     try {
-      const seederFiles = calculateFilePaths(options.seeders)
-      const seedersImported = await Promise.all(seederFiles.map((seederFile) => import(seederFile)))
-      const allSeeders = seedersImported.reduce((prev, curr) => Object.assign(prev, curr), {})
+      if (options.seeders?.length) {
+        const seederFiles = calculateFilePaths(options.seeders)
+        const seedersImported = await Promise.all(seederFiles.map((seederFile) => import(seederFile)))
+        const allSeeders = seedersImported.reduce((prev, curr) => Object.assign(prev, curr), {})
 
-      const seederWanted = args.seed || options.defaultSeeder
-      seeder = allSeeders[seederWanted]
+        let seederWanted = ''
 
-      if (!seeder) {
-        throw new SeederImportationError(`Seeder ${seederWanted} does not exist`)
+        if (args.seed) {
+          spinner.info(`Specific seeder ${args.seed} was requested`)
+          seederWanted = args.seed
+        } else if (options.defaultSeeder) {
+          spinner.info(`Default seeder ${options.defaultSeeder} was requested`)
+          seederWanted = options.defaultSeeder
+        }
+
+        // did we get a seeder?
+        if (seederWanted) {
+          // yes, does it exist in config
+          if (allSeeders[seederWanted]) {
+            // yes, set it
+            seeder = allSeeders[seederWanted]
+            // woot
+            spinner.succeed(`Seeder ${seederWanted} found in config`)
+          } else {
+            // not good :(
+            throw new SeederImportationError(`Seeder ${seederWanted} was not found in "seeders" coniguration property`)
+          }
+        }
+      } else {
+        spinner.warn('Seeders configuration option `seeders` is missing or empty')
       }
-      spinner.succeed('Seeder imported')
     } catch (error) {
       panic(spinner, error as Error, 'Could not import seeders!')
       return

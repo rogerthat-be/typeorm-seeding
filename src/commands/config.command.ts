@@ -1,11 +1,11 @@
-import { Argv, Arguments, CommandModule, exit } from 'yargs'
+import { Arguments, Argv, CommandModule, exit } from 'yargs'
+import { configureDataSource, getSeederOptions } from '../data-source'
+
 import { red } from 'chalk'
-import { configureConnection, getConnectionOptions } from '../connection'
 
 interface ConfigCommandArguments extends Arguments {
   root?: string
-  configName?: string
-  connection?: string
+  seederConfig?: string
 }
 
 export class ConfigCommand implements CommandModule {
@@ -17,21 +17,16 @@ export class ConfigCommand implements CommandModule {
    */
   builder(args: Argv) {
     return args
-      .option('n', {
-        alias: 'configName',
-        type: 'string',
-        describe: 'Name of the typeorm config file (json or js).',
-      })
-      .option('c', {
-        alias: 'connection',
-        type: 'string',
-        default: 'default',
-        describe: 'Name of the typeorm connection',
-      })
       .option('r', {
         alias: 'root',
         type: 'string',
-        describe: 'Path to your typeorm config file',
+        describe: 'Path to project root',
+        default: process.cwd(),
+      })
+      .option('c', {
+        alias: 'seederConfig',
+        type: 'string',
+        describe: 'Path to the seeder config file',
       })
   }
 
@@ -39,16 +34,17 @@ export class ConfigCommand implements CommandModule {
    * @inheritdoc
    */
   async handler(args: ConfigCommandArguments) {
+    const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
+
     try {
-      configureConnection({
-        root: args.root,
-        configName: args.configName,
-        connection: args.connection,
+      configureDataSource({
+        root: rootPath,
+        seederConfig: args.seederConfig,
       })
-      const options = await getConnectionOptions()
+      const options = await getSeederOptions()
       console.log(options)
-    } catch (error: any) {
-      console.log('\n❌ ', red('Could not find the orm config file'))
+    } catch (error: unknown) {
+      console.log('\n❌ ', red('Could not find the seeder config file'))
       console.error(error)
       exit(1, error as Error)
     }

@@ -1,31 +1,34 @@
-import type { Connection } from 'typeorm'
-import { configureConnection, fetchConnection, Seeder } from '../src'
+import { Seeder, fetchDataSource, reconfigureDataSource } from '../src'
+
+import type { DataSource } from 'typeorm'
 import { Pet } from './entities/Pet.entity'
 import { User } from './entities/User.entity'
 import { UserSeeder } from './seeders/User.seeder'
 
 describe(Seeder, () => {
-  let connection: Connection
+  let dataSource: DataSource
 
   beforeEach(async () => {
-    configureConnection({ connection: 'memory' })
-    connection = await fetchConnection()
+    reconfigureDataSource({
+      root: __dirname,
+      dataSourceConfig: 'ormconfig.ts',
+    })
 
-    await connection.synchronize()
+    dataSource = await fetchDataSource()
   })
 
   afterEach(async () => {
-    await connection.dropDatabase()
-    await connection.close()
+    await dataSource.dropDatabase()
+    await dataSource.destroy()
   })
 
   describe(Seeder.prototype.run, () => {
     test('Should seed users', async () => {
-      await new UserSeeder().run(connection)
+      await new UserSeeder().run(dataSource)
 
       const [totalUsers, totalPets] = await Promise.all([
-        connection.createEntityManager().count(User),
-        connection.createEntityManager().count(Pet),
+        dataSource.createEntityManager().count(User),
+        dataSource.createEntityManager().count(Pet),
       ])
 
       expect(totalUsers).toBe(20)
