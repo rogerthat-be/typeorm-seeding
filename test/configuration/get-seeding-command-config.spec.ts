@@ -1,9 +1,10 @@
-import { getSeederConfiguration, reconfigureDataSource } from '../../src/data-source'
+import { getSeedingCommandConfig } from '../../src/configuration/get-seeding-command-config'
+import { reconfigure } from '../../src/configuration/reconfigure'
 
-describe(getSeederConfiguration, () => {
+describe(getSeedingCommandConfig, () => {
   test('Should get default data source', async () => {
-    reconfigureDataSource({ root: __dirname, seederConfig: '../seeding.ts' })
-    const options = await getSeederConfiguration()
+    reconfigure({ root: __dirname, seedingConfig: '../seeding.ts' })
+    const options = await getSeedingCommandConfig()
 
     expect(options.seeders).toBeDefined()
     expect(options.seeders).toBeInstanceOf(Array)
@@ -11,8 +12,8 @@ describe(getSeederConfiguration, () => {
   })
 
   test('Should get memory data source', async () => {
-    reconfigureDataSource({ root: __dirname, seederConfig: '../seeding.ts' })
-    const options = await getSeederConfiguration()
+    reconfigure({ root: __dirname, seedingConfig: '../seeding.ts' })
+    const options = await getSeedingCommandConfig()
 
     expect(options.seeders).toBeDefined()
     expect(options.seeders).toBeInstanceOf(Array)
@@ -24,8 +25,8 @@ describe(getSeederConfiguration, () => {
     process.env.TYPEORM_SEEDING_SEEDERS = 'overrided'
     process.env.TYPEORM_SEEDING_DEFAULT_SEEDER = 'overrided'
 
-    reconfigureDataSource({ root: __dirname, seederConfig: '../seeding.ts' })
-    const options = await getSeederConfiguration()
+    reconfigure({ root: __dirname, seedingConfig: '../seeding.ts' })
+    const options = await getSeedingCommandConfig()
     expect(options.seeders).toBeDefined()
     expect(options.seeders).toBeInstanceOf(Array)
     expect(options.seeders).toEqual(['overrided'])

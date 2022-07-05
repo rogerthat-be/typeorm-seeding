@@ -5,17 +5,17 @@ import { Seeder } from './seeder'
 
 export type ClassConstructor<T> = new () => T
 
-export type SeederConfiguration = {
+export type SeedingCommandConfig = {
   seeders?: string[]
   defaultSeeder?: string
 }
 
-export type DataSourceConfiguration = {
+export type SeedingConfig = {
   root?: string
   dataSource?: DataSource
   dataSourceOptions?: DataSourceOptions
   dataSourceConfig?: string
-  seederConfig?: string
+  seedingConfig?: string
 }
 
 export type SeederTypeOrClass = Seeder | ClassConstructor<Seeder>

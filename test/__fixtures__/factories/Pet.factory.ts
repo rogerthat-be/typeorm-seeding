@@ -1,4 +1,4 @@
-import { Factory } from '../../src/factory'
+import { Factory } from '../../../src/factory'
 import { Pet } from '../entities/Pet.entity'
 import { User } from '../entities/User.entity'
 import { UserFactory } from './User.factory'

@@ -1,4 +1,4 @@
-import { isPromiseLike } from '../../src/utils/isPromiseLike'
+import { isPromiseLike } from '../../src/utils/is-promise-like.util'
 
 describe(isPromiseLike, () => {
   test('Passing promise should return true', () => {

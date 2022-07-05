@@ -1,19 +1,19 @@
 import { Arguments, Argv, CommandModule, exit } from 'yargs'
-import { configureDataSource, getSeederConfiguration } from '../data-source'
+import { ClassConstructor, SeedingCommandConfig } from '../types'
 import ora, { Ora } from 'ora'
 
-import { ClassConstructor } from '../types'
 import { Seeder } from '../seeder'
-import type { SeederConfiguration } from '../types'
-import { SeederImportationError } from '../errors/SeederImportationError'
-import { calculateFilePaths } from '../utils/fileHandling'
+import { SeederImportException } from '../exceptions/seeder-import.exception'
+import { calculateFilePaths } from '../utils/calcuate-file-paths.util'
+import { configure } from '../configuration/configure'
+import { getSeedingCommandConfig } from '../configuration/get-seeding-command-config'
 import { gray } from 'chalk'
-import { useSeeders } from '../useSeeders'
+import { useSeeders } from '../use-seeders'
 
 interface SeedCommandArguments extends Arguments {
   root?: string
   dataSourceConfig?: string
-  seederConfig?: string
+  seedingConfig?: string
   seed?: string
 }
 
@@ -38,7 +38,7 @@ export class SeedCommand implements CommandModule {
         describe: 'Path to the data source config file.',
       })
       .option('c', {
-        alias: 'seederConfig',
+        alias: 'seedingConfig',
         type: 'string',
         describe: 'Path to the seeder config file.',
       })
@@ -56,12 +56,12 @@ export class SeedCommand implements CommandModule {
     const spinner = ora({ text: 'Loading ormconfig', isSilent: process.env.NODE_ENV === 'test' }).start()
 
     // Get TypeORM config file
-    let config!: SeederConfiguration
+    let config!: SeedingCommandConfig
 
     try {
       const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
-      configureDataSource({ ...args, root: rootPath })
-      config = await getSeederConfiguration()
+      configure({ ...args, root: rootPath })
+      config = await getSeedingCommandConfig()
       spinner.succeed('ORM Config loaded')
     } catch (error) {
       panic(spinner, error as Error, 'Could not load the config file!')
@@ -98,7 +98,7 @@ export class SeedCommand implements CommandModule {
             spinner.succeed(`Seeder ${seederWanted} found in config`)
           } else {
             // not good :(
-            throw new SeederImportationError(`Seeder ${seederWanted} was not found in "seeders" coniguration property`)
+            throw new SeederImportException(`Seeder ${seederWanted} was not found in "seeders" coniguration property`)
           }
         }
       } else {

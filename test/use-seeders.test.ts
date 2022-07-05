@@ -1,16 +1,17 @@
-import { fetchDataSource, reconfigureDataSource, useSeeders } from '../src'
-
 import type { DataSource } from 'typeorm'
-import { Pet } from './entities/Pet.entity'
-import { PetSeeder } from './seeders/Pet.seeder'
-import { User } from './entities/User.entity'
-import { UserSeeder } from './seeders/User.seeder'
+import { Pet } from './__fixtures__/entities/Pet.entity'
+import { PetSeeder } from './__fixtures__/seeders/Pet.seeder'
+import { User } from './__fixtures__/entities/User.entity'
+import { UserSeeder } from './__fixtures__/seeders/User.seeder'
+import { fetchDataSource } from '../src/configuration/fetch-data-source'
+import { reconfigure } from '../src/configuration/reconfigure'
+import { useSeeders } from '../src/use-seeders'
 
 describe(useSeeders, () => {
   let dataSource: DataSource
 
   beforeEach(async () => {
-    reconfigureDataSource({
+    reconfigure({
       root: __dirname,
       dataSourceConfig: 'ormconfig.ts',
     })

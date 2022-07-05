@@ -1,6 +1,6 @@
 import type { DataSource } from 'typeorm'
 import { PetSeeder } from './Pet.seeder'
-import { Seeder } from '../../src'
+import { Seeder } from '../../../src'
 import { User } from '../entities/User.entity'
 import { UserFactory } from '../factories/User.factory'
 

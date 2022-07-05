@@ -1,4 +1,2 @@
-module.exports = {
-  seeders: ['sample/seeders/**/*{.ts,.js}'],
-  defaultSeeder: 'RootSeeder',
-}
+// see jest-setup.ts
+module.exports = {}

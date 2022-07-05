@@ -9,7 +9,7 @@ import { Factory } from '../factory'
  * @param factories factories default config
  * @param factoryOverrides factory overrides config
  */
-export function resolveFactoryUtil<Entities, K extends keyof FactoriesConfiguration<Entities>>(
+export function resolveFactory<Entities, K extends keyof FactoriesConfiguration<Entities>>(
   key: K,
   factories: FactoriesConfiguration<Entities> = {},
   factoryOverrides: FactoriesConfiguration<Entities> = {},

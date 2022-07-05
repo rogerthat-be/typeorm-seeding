@@ -1,5 +1,3 @@
-export * from './data-source'
-export * from './factory'
-export * from './seeder'
-export * from './types'
-export * from './useSeeders'
+export { Factory } from './factory'
+export { Seeder } from './seeder'
+export { useSeeders } from './use-seeders'

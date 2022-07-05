@@ -1,38 +1,38 @@
-import { configureDataSource, reconfigureDataSource } from '../../src/data-source'
-
+import { ConfigManager } from '../../src/configuration/config-manager'
 import { DataSource } from 'typeorm'
-import { DataSourceConfiguration } from '../../src/types'
-import { DataSourceConfigurationManager } from '../../src/data-source/DataSourceConfigurationManager'
+import { SeedingConfig } from '../../src/types'
+import { configure } from '../../src/configuration/configure'
+import { reconfigure } from '../../src/configuration/reconfigure'
 
-describe(configureDataSource, () => {
-  const configurationManager = DataSourceConfigurationManager.getInstance()
+describe(configure, () => {
+  const configurationManager = ConfigManager.getInstance()
 
   beforeEach(() => {
-    reconfigureDataSource()
+    reconfigure()
   })
 
   test('Should return initial config if not updated', async () => {
     const initialConfig = configurationManager.configuration
-    configureDataSource({
+    configure({
       root: '',
-      seederConfig: 'seeding.ts',
+      seedingConfig: 'seeding.ts',
     })
 
     expect(configurationManager.configuration).toMatchObject(initialConfig)
   })
 
   test('Should update data source configuration', async () => {
-    const newConfig: DataSourceConfiguration = {
+    const newConfig: SeedingConfig = {
       dataSource: new DataSource({ type: 'sqlite', database: ':memory:' }),
       dataSourceOptions: { type: 'sqlite', database: ':memory:' },
       dataSourceConfig: 'path/to/orm/config',
-      seederConfig: 'path/to/seeder/config',
+      seedingConfig: 'path/to/seeder/config',
     }
-    configureDataSource(newConfig)
+    configure(newConfig)
 
     expect(configurationManager.configuration.dataSource).toBeInstanceOf(DataSource)
     expect(configurationManager.configuration.dataSourceOptions).toEqual({ type: 'sqlite', database: ':memory:' })
     expect(configurationManager.configuration.dataSourceConfig).toEqual('path/to/orm/config')
-    expect(configurationManager.configuration.seederConfig).toEqual('path/to/seeder/config')
+    expect(configurationManager.configuration.seedingConfig).toEqual('path/to/seeder/config')
   })
 })

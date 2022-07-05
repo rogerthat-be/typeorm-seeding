@@ -1,8 +1,8 @@
-import type { DataSource, ObjectLiteral } from 'typeorm'
-import type { FactoriesConfiguration, SeederTypeOrClass } from './types'
+import { DataSource, ObjectLiteral } from 'typeorm'
+import { FactoriesConfiguration, SeederTypeOrClass } from './types'
 
 import { Factory } from './factory'
-import { resolveFactoryUtil } from './utils/resolve-factory.util'
+import { resolveFactory } from './utils/resolve-factory.util'
 
 export interface SeederOptions<Entities> {
   factories?: FactoriesConfiguration<Entities>
@@ -29,7 +29,7 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
   }
 
   public factory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
-    return resolveFactoryUtil(key, this.options.factories, this.overrides.factories)
+    return resolveFactory(key, this.options.factories, this.overrides.factories)
   }
 
   protected seeders(): SeederTypeOrClass[] {

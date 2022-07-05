@@ -1,9 +1,9 @@
+import { ConfigManager } from './config-manager'
 import { DataSource } from 'typeorm'
-import { DataSourceConfigurationManager } from './DataSourceConfigurationManager'
-import { configureDataSource } from './configureDataSource'
+import { configure } from './configure'
 
 export const fetchDataSource = async (): Promise<DataSource> => {
-  const DSCM = DataSourceConfigurationManager.getInstance()
+  const DSCM = ConfigManager.getInstance()
 
   const { root, dataSource, dataSourceConfig, dataSourceOptions } = DSCM.configuration
 
@@ -28,7 +28,7 @@ export const fetchDataSource = async (): Promise<DataSource> => {
   }
 
   // set the datasource for future runs
-  configureDataSource({ dataSource: dataSourceToReturn })
+  configure({ dataSource: dataSourceToReturn })
 
   // has been initialized yet?
   if (!dataSourceToReturn.isInitialized) {

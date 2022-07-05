@@ -1,16 +1,17 @@
-import { configureDataSource, fetchDataSource, reconfigureDataSource } from '../../src/data-source'
-
 import { DataSource } from 'typeorm'
+import { configure } from '../../src/configuration/configure'
+import { fetchDataSource } from '../../src/configuration/fetch-data-source'
+import { reconfigure } from '../../src/configuration/reconfigure'
 
 describe(fetchDataSource, () => {
   beforeEach(() => {
-    reconfigureDataSource()
+    reconfigure()
   })
 
   test('Should use an explicit data source', async () => {
     const explicitDataSource = new DataSource({ type: 'sqlite', database: ':memory:' })
 
-    configureDataSource({
+    configure({
       dataSource: explicitDataSource,
     })
 
@@ -21,7 +22,7 @@ describe(fetchDataSource, () => {
   })
 
   test('Should create a datasource from options', async () => {
-    configureDataSource({
+    configure({
       dataSourceOptions: {
         type: 'sqlite',
         database: ':memory:',
@@ -42,7 +43,7 @@ describe(fetchDataSource, () => {
   })
 
   test('Should create a datasource from config file', async () => {
-    configureDataSource({
+    configure({
       root: __dirname,
       dataSourceConfig: '../ormconfig.ts',
     })
@@ -54,7 +55,7 @@ describe(fetchDataSource, () => {
       expect.objectContaining({
         type: 'sqlite',
         database: ':memory:',
-        entities: ['test/entities/**/*.entity.ts'],
+        entities: ['test/__fixtures__/entities/**/*.entity.ts'],
         synchronize: true,
       }),
     )

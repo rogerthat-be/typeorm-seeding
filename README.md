@@ -56,7 +56,7 @@ To configure the path to your seeders change the TypeORM config file or use envi
 module.exports = {
   type: 'sqlite',
   database: ':memory:',
-  entities: ['test/entities/**/*{.ts,.js}'],
+  entities: ['src/entities/**/*{.ts,.js}'],
 }
 ```
 
@@ -340,10 +340,10 @@ Example result
 
 ##### Options
 
-| Option                   | Default         | Description                                      |
-| ------------------------ | --------------- | ------------------------------------------------ |
-| `--root` or `-r`         | `process.cwd()` | Path to the project root                         |
-| `--seederConfig` or `-c` | `seeding.ts`    | Relative path to the seeding config from `root`. |
+| Option                    | Default         | Description                                      |
+| ------------------------- | --------------- | ------------------------------------------------ |
+| `--root` or `-r`          | `process.cwd()` | Path to the project root                         |
+| `--seedingConfig` or `-c` | `seeding.ts`    | Relative path to the seeding config from `root`. |
 
 ### `seed`
 
@@ -359,7 +359,7 @@ typeorm-seeding seed
 | ---------------------------- | --------------- | -------------------------------------------------------- |
 | `--root` or `-r`             | `process.cwd()` | Path to the project root                                 |
 | `--dataSourceConfig` or `-d` | `ormconfig.ts`  | Relative path to TypeORM data source config from `root`. |
-| `--seederConfig` or `-c`     | `seeding.ts`    | Relative path to the seeding config from `root`.         |
+| `--seedingConfig` or `-c`    | `seeding.ts`    | Relative path to the seeding config from `root`.         |
 | `--seed` or `-s`             |                 | Run a specific seeder class to run individually.         |
 
 ## Testing features

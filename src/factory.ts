@@ -1,9 +1,9 @@
 import { ClassConstructor, FactoriesConfiguration } from './types'
-import type { ObjectLiteral, SaveOptions } from 'typeorm'
+import { ObjectLiteral, SaveOptions } from 'typeorm'
 
-import { fetchDataSource } from './data-source'
-import { isPromiseLike } from './utils/isPromiseLike'
-import { resolveFactoryUtil } from './utils/resolve-factory.util'
+import { fetchDataSource } from './configuration/fetch-data-source'
+import { isPromiseLike } from './utils/is-promise-like.util'
+import { resolveFactory } from './utils/resolve-factory.util'
 
 export interface FactoryOptions<T, Entities> {
   entity?: ClassConstructor<T>
@@ -114,6 +114,6 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
   }
 
   public subFactory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
-    return resolveFactoryUtil(key, this.options.factories, this.overrides.factories)
+    return resolveFactory(key, this.options.factories, this.overrides.factories)
   }
 }
