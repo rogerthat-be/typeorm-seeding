@@ -1,10 +1,29 @@
-import type { SaveOptions } from 'typeorm'
+import { ClassConstructor, FactoriesConfiguration } from './types'
+import type { ObjectLiteral, SaveOptions } from 'typeorm'
+
 import { fetchDataSource } from './data-source'
 import { isPromiseLike } from './utils/isPromiseLike'
+import { resolveFactoryUtil } from './utils/resolve-factory.util'
 
-export abstract class Factory<Entity> {
+export interface FactoryOptions<T, Entities> {
+  entity?: ClassConstructor<T>
+  factories?: FactoriesConfiguration<Entities>
+}
+
+export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLiteral> {
+  protected abstract options: FactoryOptions<Entity, Entities>
+
   private mapFunction?: (entity: Entity) => Promise<void> | void
-  protected abstract definition(): Promise<Entity>
+
+  constructor(protected overrides: Partial<FactoryOptions<Entity, Entities>> = {}) {}
+
+  protected async entity(entity?: Entity): Promise<Entity> {
+    if (entity) {
+      return entity
+    } else {
+      throw new Error('No entity was found in Factory options, so you must override the `entity` method')
+    }
+  }
 
   /**
    * This function is used to alter the generated values of entity, before it
@@ -54,8 +73,14 @@ export abstract class Factory<Entity> {
     return list
   }
 
+  private entityClass(): ClassConstructor<Entity> | undefined {
+    return this.overrides?.entity ? this.overrides.entity : this.options.entity
+  }
+
   private async makeEntity(overrideParams: Partial<Entity>, isSeeding: boolean) {
-    const entity = await this.definition()
+    const entityClass = this.entityClass()
+
+    const entity = await this.entity(entityClass ? new entityClass() : undefined)
 
     if (this.mapFunction) {
       await this.mapFunction(entity)
@@ -86,5 +111,9 @@ export abstract class Factory<Entity> {
       }
     }
     return entity
+  }
+
+  public subFactory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
+    return resolveFactoryUtil(key, this.options.factories, this.overrides.factories)
   }
 }

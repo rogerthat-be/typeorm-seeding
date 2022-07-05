@@ -3,11 +3,10 @@ import { User } from '../entities/User.entity'
 import { faker } from '@faker-js/faker'
 
 export class UserFactory extends Factory<User> {
-  protected async definition(): Promise<User> {
-    const user = new User()
+  protected options = { entity: User }
 
+  protected async entity(user: User): Promise<User> {
     user.name = faker.name.findName()
-
     return user
   }
 }

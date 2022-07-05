@@ -98,13 +98,25 @@ class User {
 ### Factory
 
 ```typescript
+// basic
 class UserFactory extends Factory<User> {
-  protected definition(): User {
+  protected entity(): User {
     const user = new User()
-
     user.name = 'John'
     user.lastname = 'Doe'
+    return user
+  }
+}
 
+// advanced (see overrides API)
+class UserFactory extends Factory<User> {
+  protected options = {
+    entity: User,
+  }
+
+  protected entity(user: User): User {
+    user.name = 'John'
+    user.lastname = 'Doe'
     return user
   }
 }
@@ -129,30 +141,42 @@ Factory is how we provide a way to simplify entities creation, implementing a
 It is defined as an abstract class with generic typing, so you have to extend over it.
 
 ```typescript
+// basic
 class UserFactory extends Factory<User> {
-  protected definition(): User {
-    ...
+  protected entity(): User {
+    const user = new User()
+    // ...
+    return user
+  }
+}
+
+// advanced (see overrides API)
+class UserFactory extends Factory<User> {
+  protected options = {
+    entity: User,
+  }
+
+  protected entity(user: User): User {
+    // ...
+    return user
   }
 }
 ```
 
-### `definition`
+### `entity`
 
-This function is the one that needs to be defined when extending the class.
+This method can be overridden to customize how the entity is generated.
 It is called to instantiate the entity and the result will be used on the rest of factory lifecycle.
 
 ```typescript
-protected definition(): User {
-    const user = new User()
-
+protected entity(user: User): User {
     user.name = 'John'
     user.lastname = 'Doe'
-
     return user
 }
 ```
 
-It is possible to create more than one factory related to a single entity, with different definition functions.
+It is possible to create more than one factory related to a single entity, with different entity functions.
 
 ### `map`
 
@@ -231,9 +255,11 @@ but now it is optional due to its size. If you want to use faker, you may need t
 import { faker } from '@faker-js/faker'
 
 class UserFactory extends Factory<User> {
-  protected definition(): User {
-    const user = new User()
+  protected options = {
+    entity: User,
+  }
 
+  protected entity(user: User): User {
     user.name = faker.name.firstName()
     user.lastname = faker.name.lastName()
 
@@ -347,7 +373,7 @@ Execute one or more seeders.
 
 ```typescript
 useSeeders(
-  entrySeeders: ClassConstructor<Seeder> | ClassConstructor<Seeder>[],
+  entrySeeders: SeederTypeOrClass | SeederTypeOrClass[],
   customOptions?: Partial<DataSourceConfiguration>,
 ): Promise<void>
 ```

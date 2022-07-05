@@ -1,7 +1,7 @@
 import { DataSourceConfigurationManager } from './DataSourceConfigurationManager'
-import { SeederOptions } from '../types'
+import { SeederConfiguration } from '../types'
 
-export async function getSeederOptions(): Promise<SeederOptions> {
+export async function getSeederConfiguration(): Promise<SeederConfiguration> {
   const { root, seederConfig } = DataSourceConfigurationManager.getInstance().configuration
 
   if (!seederConfig) {
@@ -9,7 +9,7 @@ export async function getSeederOptions(): Promise<SeederOptions> {
   }
 
   const configPath = `${root}/${seederConfig}`
-  const options: SeederOptions = await import(configPath)
+  const options: SeederConfiguration = await import(configPath)
 
   const seedersFromEnv = process.env.TYPEORM_SEEDING_SEEDERS
   const defaultSeederFromEnv = process.env.TYPEORM_SEEDING_DEFAULT_SEEDER

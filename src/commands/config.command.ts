@@ -1,5 +1,5 @@
 import { Arguments, Argv, CommandModule, exit } from 'yargs'
-import { configureDataSource, getSeederOptions } from '../data-source'
+import { configureDataSource, getSeederConfiguration } from '../data-source'
 
 import { red } from 'chalk'
 
@@ -41,8 +41,8 @@ export class ConfigCommand implements CommandModule {
         root: rootPath,
         seederConfig: args.seederConfig,
       })
-      const options = await getSeederOptions()
-      console.log(options)
+      const config = await getSeederConfiguration()
+      console.log(config)
     } catch (error: unknown) {
       console.log('\n❌ ', red('Could not find the seeder config file'))
       console.error(error)

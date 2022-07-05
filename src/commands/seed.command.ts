@@ -1,11 +1,11 @@
 import { Arguments, Argv, CommandModule, exit } from 'yargs'
-import { configureDataSource, getSeederOptions } from '../data-source'
+import { configureDataSource, getSeederConfiguration } from '../data-source'
 import ora, { Ora } from 'ora'
 
 import { ClassConstructor } from '../types'
 import { Seeder } from '../seeder'
+import type { SeederConfiguration } from '../types'
 import { SeederImportationError } from '../errors/SeederImportationError'
-import type { SeederOptions } from '../types'
 import { calculateFilePaths } from '../utils/fileHandling'
 import { gray } from 'chalk'
 import { useSeeders } from '../useSeeders'
@@ -56,12 +56,12 @@ export class SeedCommand implements CommandModule {
     const spinner = ora({ text: 'Loading ormconfig', isSilent: process.env.NODE_ENV === 'test' }).start()
 
     // Get TypeORM config file
-    let options!: SeederOptions
+    let config!: SeederConfiguration
 
     try {
       const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
       configureDataSource({ ...args, root: rootPath })
-      options = await getSeederOptions()
+      config = await getSeederConfiguration()
       spinner.succeed('ORM Config loaded')
     } catch (error) {
       panic(spinner, error as Error, 'Could not load the config file!')
@@ -73,8 +73,8 @@ export class SeedCommand implements CommandModule {
     let seeder!: ClassConstructor<Seeder>
 
     try {
-      if (options.seeders?.length) {
-        const seederFiles = calculateFilePaths(options.seeders)
+      if (config.seeders?.length) {
+        const seederFiles = calculateFilePaths(config.seeders)
         const seedersImported = await Promise.all(seederFiles.map((seederFile) => import(seederFile)))
         const allSeeders = seedersImported.reduce((prev, curr) => Object.assign(prev, curr), {})
 
@@ -83,9 +83,9 @@ export class SeedCommand implements CommandModule {
         if (args.seed) {
           spinner.info(`Specific seeder ${args.seed} was requested`)
           seederWanted = args.seed
-        } else if (options.defaultSeeder) {
-          spinner.info(`Default seeder ${options.defaultSeeder} was requested`)
-          seederWanted = options.defaultSeeder
+        } else if (config.defaultSeeder) {
+          spinner.info(`Default seeder ${config.defaultSeeder} was requested`)
+          seederWanted = config.defaultSeeder
         }
 
         // did we get a seeder?
