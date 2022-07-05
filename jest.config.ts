@@ -1,6 +1,6 @@
 export default {
   collectCoverageFrom: ['src/**/!(*.d).ts'],
   preset: 'ts-jest',
-  setupFiles: ['<rootDir>/jest-setup.ts'],
+  setupFiles: ['<rootDir>/test/jest-setup.ts'],
   testEnvironment: 'node',
 }
