@@ -1,19 +1,17 @@
 import { ConfigManager } from '../../src/configuration/config-manager'
 import { DataSource } from 'typeorm'
 import { SeedingConfig } from '../../src/types'
-import { configure } from '../../src/configuration/configure'
-import { reconfigure } from '../../src/configuration/reconfigure'
 
-describe(configure, () => {
+describe(ConfigManager.prototype.merge, () => {
   const configurationManager = ConfigManager.getInstance()
 
   beforeEach(() => {
-    reconfigure()
+    ConfigManager.getInstance().replace()
   })
 
   test('Should return initial config if not updated', async () => {
     const initialConfig = configurationManager.configuration
-    configure({
+    ConfigManager.getInstance().merge({
       root: '',
       seedingConfig: 'seeding.ts',
     })
@@ -28,7 +26,7 @@ describe(configure, () => {
       dataSourceConfig: 'path/to/orm/config',
       seedingConfig: 'path/to/seeder/config',
     }
-    configure(newConfig)
+    ConfigManager.getInstance().merge(newConfig)
 
     expect(configurationManager.configuration.dataSource).toBeInstanceOf(DataSource)
     expect(configurationManager.configuration.dataSourceOptions).toEqual({ type: 'sqlite', database: ':memory:' })

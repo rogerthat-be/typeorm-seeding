@@ -4,11 +4,10 @@ import ora, { Ora } from 'ora'
 
 import { Seeder } from '../seeder'
 import { SeederImportException } from '../exceptions/seeder-import.exception'
+import { Seeding } from '../seeding'
 import { calculateFilePaths } from '../utils/calcuate-file-paths.util'
-import { configure } from '../configuration/configure'
-import { getSeedingCommandConfig } from '../configuration/get-seeding-command-config'
+import { getCommandConfig } from '../configuration/get-command-config'
 import { gray } from 'chalk'
-import { useSeeders } from '../use-seeders'
 
 interface SeedCommandArguments extends Arguments {
   root?: string
@@ -60,8 +59,8 @@ export class SeedCommand implements CommandModule {
 
     try {
       const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
-      configure({ ...args, root: rootPath })
-      config = await getSeedingCommandConfig()
+      Seeding.configure({ ...args, root: rootPath })
+      config = await getCommandConfig()
       spinner.succeed('ORM Config loaded')
     } catch (error) {
       panic(spinner, error as Error, 'Could not load the config file!')
@@ -112,7 +111,7 @@ export class SeedCommand implements CommandModule {
     // Run seeder
     spinner.start(`Executing ${seeder.name} Seeder`)
     try {
-      await useSeeders(seeder)
+      await Seeding.run(seeder)
       spinner.succeed(`Seeder ${seeder.name} executed`)
     } catch (error) {
       panic(spinner, error as Error, `Could not run the seed ${seeder.name}!`)

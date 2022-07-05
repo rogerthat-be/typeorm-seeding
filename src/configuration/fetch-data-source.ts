@@ -1,11 +1,9 @@
 import { ConfigManager } from './config-manager'
 import { DataSource } from 'typeorm'
-import { configure } from './configure'
+import { Seeding } from '../seeding'
 
 export const fetchDataSource = async (): Promise<DataSource> => {
-  const DSCM = ConfigManager.getInstance()
-
-  const { root, dataSource, dataSourceConfig, dataSourceOptions } = DSCM.configuration
+  const { root, dataSource, dataSourceConfig, dataSourceOptions } = ConfigManager.getInstance().configuration
 
   // the data source we will be returning
   let dataSourceToReturn: DataSource
@@ -28,7 +26,7 @@ export const fetchDataSource = async (): Promise<DataSource> => {
   }
 
   // set the datasource for future runs
-  configure({ dataSource: dataSourceToReturn })
+  Seeding.configure({ dataSource: dataSourceToReturn })
 
   // has been initialized yet?
   if (!dataSourceToReturn.isInitialized) {

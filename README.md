@@ -241,10 +241,10 @@ new UserFactory().createMany(10, { email: 'other@mail.com' }, { listeners: false
 
 As the order of execution can be complex, you can check it here:
 
-2. **Map function**: Map function alters the already existing entity.
-3. **Override params**: Alters the already existing entity.
-4. **Promises**: If some attribute is a promise, the promise will be resolved before the entity is created.
-5. **Factories**: If some attribute is a factory, the factory will be executed with `make`/`create` like the previous one.
+1. **Map function**: Map function alters the already existing entity.
+2. **Override params**: Alters the already existing entity.
+3. **Promises**: If some attribute is a promise, the promise will be resolved before the entity is created.
+4. **Factories**: If some attribute is a factory, the factory will be executed with `make`/`create` like the previous one.
 
 ### Faker
 
@@ -362,22 +362,86 @@ typeorm-seeding seed
 | `--seedingConfig` or `-c`    | `seeding.ts`    | Relative path to the seeding config from `root`.         |
 | `--seed` or `-s`             |                 | Run a specific seeder class to run individually.         |
 
-## Testing features
+## Testing Features
 
-We provide some testing features that we already use to test this package, like data source configuration.
-The entity factories can also be used in testing. To do so call the `useFactories` or `useSeeders` function.
+To make seeding your unit tests a simple task, the `Seeding` class is provided with a few static methods.
 
-### `useSeeders`
+The minimum requirements to initialize seeding is to call the `Seeding.configure` method.
+This enables manual execution of seeders and factories.
 
-Execute one or more seeders.
+To configure and run one or more seeders with one command, use the `Seeding.run` method.
+
+### Configuration Options
+
+Configurations properties will be searched in the order seen below.
+
+> Once a data source property is found, **the remaining properties will be ignored**.
 
 ```typescript
-useSeeders(
+type SeedingRunConfig = {
+  // explicit data source instance
+  dataSource?: DataSource
+  // data source options for creating a data source instance
+  dataSourceOptions?: DataSourceOptions
+  // path to data source config file, relative to `root`
+  dataSourceConfig?: string
+  // path to project root (for file configs)
+  root?: string
+}
+```
+
+### Runtime Configuration
+
+#### `Seeding.configure`
+
+Configure seeding. This will MERGE on top of any existing configuration.
+
+```typescript
+Seeding.configure(
+  configOverrides?: Partial<SeedingConfig>,
+): Promise<void>
+```
+
+#### `Seeding.reconfigure`
+
+Re-configure seeding. This will REPLACE the existing configuration.
+
+```typescript
+Seeding.reconfigure(
+  configuration?: Partial<SeedingConfig>,
+): Promise<void>
+```
+
+### Seeders
+
+#### `Seeding.run`
+
+Execute one or more seeders. You are NOT required to call `Seeding.configure` first.
+
+If `configOverrides` are passed, they will be merged on top of any existing configuration.
+
+```typescript
+Seeding.run(
   entrySeeders: SeederTypeOrClass | SeederTypeOrClass[],
-  customOptions?: Partial<DataSourceConfiguration>,
+  configOverrides?: SeedingRunConfig,
 ): Promise<void>
 ```
 
 ### Factories
 
-If factories are being used to create entities, just remember to clean up fake data after every execution.
+You only need to configure seeding to be able to use factories on their own.
+
+All of the configuration options are available, but in the example we create
+and explicity pass the data source we want to use.
+
+```typescript
+const dataSource = new DataSource({
+  type: 'sqlite',
+  database: ':memory:',
+})
+
+Seeding.configure({ dataSource })
+
+const factory = new UserFactory()
+const user = await factory.create()
+```

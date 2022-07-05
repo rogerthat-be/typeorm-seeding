@@ -1,17 +1,16 @@
 import type { DataSource } from 'typeorm'
 import { Pet } from './__fixtures__/entities/Pet.entity'
 import { PetSeeder } from './__fixtures__/seeders/Pet.seeder'
+import { Seeding } from '../src/seeding'
 import { User } from './__fixtures__/entities/User.entity'
 import { UserSeeder } from './__fixtures__/seeders/User.seeder'
 import { fetchDataSource } from '../src/configuration/fetch-data-source'
-import { reconfigure } from '../src/configuration/reconfigure'
-import { useSeeders } from '../src/use-seeders'
 
-describe(useSeeders, () => {
+describe(Seeding.run, () => {
   let dataSource: DataSource
 
   beforeEach(async () => {
-    reconfigure({
+    Seeding.reconfigure({
       root: __dirname,
       dataSourceConfig: 'ormconfig.ts',
     })
@@ -24,7 +23,7 @@ describe(useSeeders, () => {
   })
 
   test(`Should seed with only one seeder provided`, async () => {
-    await useSeeders(UserSeeder)
+    await Seeding.run(UserSeeder)
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 
@@ -32,7 +31,7 @@ describe(useSeeders, () => {
   })
 
   test(`Should seed with multiple seeders provided`, async () => {
-    await useSeeders([UserSeeder, PetSeeder])
+    await Seeding.run([UserSeeder, PetSeeder])
 
     const [totalUsers, totalPets] = await Promise.all([
       dataSource.createEntityManager().count(User),
@@ -44,7 +43,7 @@ describe(useSeeders, () => {
   })
 
   test(`Should seed with custom options`, async () => {
-    await useSeeders(UserSeeder)
+    await Seeding.run(UserSeeder)
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 

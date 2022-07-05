@@ -1,7 +1,7 @@
 import { ConfigManager } from './config-manager'
 import { SeedingCommandConfig } from '../types'
 
-export async function getSeedingCommandConfig(): Promise<SeedingCommandConfig> {
+export async function getCommandConfig(): Promise<SeedingCommandConfig> {
   const { root, seedingConfig } = ConfigManager.getInstance().configuration
 
   if (!seedingConfig) {

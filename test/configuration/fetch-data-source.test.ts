@@ -1,17 +1,16 @@
 import { DataSource } from 'typeorm'
-import { configure } from '../../src/configuration/configure'
+import { Seeding } from '../../src/seeding'
 import { fetchDataSource } from '../../src/configuration/fetch-data-source'
-import { reconfigure } from '../../src/configuration/reconfigure'
 
 describe(fetchDataSource, () => {
   beforeEach(() => {
-    reconfigure()
+    Seeding.reconfigure({})
   })
 
   test('Should use an explicit data source', async () => {
     const explicitDataSource = new DataSource({ type: 'sqlite', database: ':memory:' })
 
-    configure({
+    Seeding.configure({
       dataSource: explicitDataSource,
     })
 
@@ -22,7 +21,7 @@ describe(fetchDataSource, () => {
   })
 
   test('Should create a datasource from options', async () => {
-    configure({
+    Seeding.configure({
       dataSourceOptions: {
         type: 'sqlite',
         database: ':memory:',
@@ -43,7 +42,7 @@ describe(fetchDataSource, () => {
   })
 
   test('Should create a datasource from config file', async () => {
-    configure({
+    Seeding.configure({
       root: __dirname,
       dataSourceConfig: '../ormconfig.ts',
     })

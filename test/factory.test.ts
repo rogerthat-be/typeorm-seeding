@@ -2,10 +2,10 @@ import type { DataSource } from 'typeorm'
 import { Factory } from '../src/factory'
 import { Pet } from './__fixtures__/entities/Pet.entity'
 import { PetFactory } from './__fixtures__/factories/Pet.factory'
+import { Seeding } from '../src/seeding'
 import { User } from './__fixtures__/entities/User.entity'
 import { UserFactory } from './__fixtures__/factories/User.factory'
 import { fetchDataSource } from '../src/configuration/fetch-data-source'
-import { reconfigure } from '../src/configuration/reconfigure'
 
 describe(Factory, () => {
   let dataSource: DataSource
@@ -13,7 +13,7 @@ describe(Factory, () => {
   const petFactory = new PetFactory()
 
   beforeEach(async () => {
-    reconfigure({
+    Seeding.reconfigure({
       root: __dirname,
       dataSourceConfig: 'ormconfig.ts',
     })

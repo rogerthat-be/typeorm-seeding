@@ -16,11 +16,11 @@ export class ConfigManager {
     return { root: '', seedingConfig: 'seeding.ts', dataSourceConfig: 'ormconfig.ts', ...this.config }
   }
 
-  overrideConfig(config: Partial<SeedingConfig>) {
-    this.config = { ...this.config, ...config }
+  merge(config: Partial<SeedingConfig> = {}) {
+    this.config = { ...this.config, dataSource: undefined, ...config }
   }
 
-  replaceConfig(configuration: Partial<SeedingConfig>) {
+  replace(configuration: Partial<SeedingConfig> = {}) {
     this.config = configuration
   }
 }

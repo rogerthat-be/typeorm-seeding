@@ -18,6 +18,8 @@ export type SeedingConfig = {
   seedingConfig?: string
 }
 
+export type SeedingRunConfig = Omit<SeedingConfig, 'seedingConfig'>
+
 export type SeederTypeOrClass = Seeder | ClassConstructor<Seeder>
 
 export type FactoryTypeOrClass<T> = Factory<T> | ClassConstructor<Factory<T>>

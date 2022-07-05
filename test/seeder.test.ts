@@ -4,18 +4,18 @@ import { Pet } from './__fixtures__/entities/Pet.entity'
 import { Pet2 } from './__fixtures__/entities/Pet2.entity'
 import { PetSeeder } from './__fixtures__/seeders/Pet.seeder'
 import { Seeder } from '../src/seeder'
+import { Seeding } from '../src/seeding'
 import { User } from './__fixtures__/entities/User.entity'
 import { User2 } from './__fixtures__/entities/User2.entity'
 import { UserFactory } from './__fixtures__/factories/User.factory'
 import { UserSeeder } from './__fixtures__/seeders/User.seeder'
 import { fetchDataSource } from '../src/configuration/fetch-data-source'
-import { reconfigure } from '../src/configuration/reconfigure'
 
 describe(Seeder, () => {
   let dataSource: DataSource
 
   beforeEach(async () => {
-    reconfigure({
+    Seeding.reconfigure({
       root: __dirname,
       dataSourceConfig: 'ormconfig.ts',
     })
