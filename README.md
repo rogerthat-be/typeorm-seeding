@@ -4,9 +4,9 @@
 <h1 align="center" style="text-align: center;">TypeORM Seeding</h1>
 
 <p align="center">
-  <img alt="NPM" src="https://img.shields.io/npm/l/@conceptadev/typeorm-seeding?style=for-the-badge">
-  <a href="https://www.npmjs.com/package/@conceptadev/typeorm-seeding">
-    <img alt="NPM latest version" src="https://img.shields.io/npm/v/@conceptadev/typeorm-seeding/latest?style=for-the-badge">
+  <img alt="NPM" src="https://img.shields.io/npm/l/@concepta/typeorm-seeding?style=for-the-badge">
+  <a href="https://www.npmjs.com/package/@concepta/typeorm-seeding">
+    <img alt="NPM latest version" src="https://img.shields.io/npm/v/@concepta/typeorm-seeding/latest?style=for-the-badge">
   </a>
 </p>
 
@@ -40,8 +40,8 @@ Before using this TypeORM extension please read the [TypeORM Getting Started](ht
 After that install the extension with `npm` or `yarn`. Add development flag if you are not using seeders nor factories in production code.
 
 ```bash
-npm i [-D] @conceptadev/typeorm-seeding
-yarn add [-D] @conceptadev/typeorm-seeding
+npm i [-D] @concepta/typeorm-seeding
+yarn add [-D] @concepta/typeorm-seeding
 
 > This module requires TypeORM 0.3.0 and higher.
 ```

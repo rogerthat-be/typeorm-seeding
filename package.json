@@ -1,5 +1,5 @@
 {
-  "name": "@conceptadev/typeorm-seeding",
+  "name": "@concepta/typeorm-seeding",
   "version": "4.0.0-alpha.1",
   "description": "A simple but powerful database seeder for TypeORM ^0.3.0",
   "license": "MIT",
