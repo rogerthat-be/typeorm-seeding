@@ -17,7 +17,7 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
   abstract run(dataSource: DataSource): Promise<void>
 
   protected async call(dataSource: DataSource, seeders: SeederTypeOrClass[] = []): Promise<void> {
-    const allSeeders = [...seeders, ...this.seeders()]
+    const allSeeders = this.seeders(seeders)
 
     for (const seeder of allSeeders) {
       if (seeder instanceof Seeder) {
@@ -32,7 +32,24 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
     return resolveFactory(key, this.options.factories, this.overrides.factories)
   }
 
-  protected seeders(): SeederTypeOrClass[] {
-    return [...(this.options.seeders ?? []), ...(this.overrides.seeders ?? [])]
+  /**
+   * Return configured seeders.
+   *
+   * Seeders are NOT merged!
+   *
+   * Priority is:
+   *
+   * 1. Seeders passed explicitly
+   * 2. Seeders passed as overrides
+   * 3. Seeders set as class options
+   */
+  protected seeders(seeders: SeederTypeOrClass[] = []): SeederTypeOrClass[] {
+    return seeders.length
+      ? seeders
+      : this.overrides.seeders?.length
+      ? this.overrides.seeders
+      : this.options.seeders?.length
+      ? this.options.seeders
+      : []
   }
 }
