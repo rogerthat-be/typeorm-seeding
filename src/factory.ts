@@ -10,16 +10,34 @@ export interface FactoryOptions<T, Entities> {
   factories?: FactoriesConfiguration<Entities>
 }
 
+/**
+ * Factory
+ */
 export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLiteral> {
   /**
    * Options
    */
   protected options: FactoryOptions<Entity, Entities> = {}
 
+  /**
+   * Mapping function.
+   *
+   * @private
+   */
   private mapFunction?: (entity: Entity) => Promise<void> | void
 
+  /**
+   * Constructor
+   *
+   * @param overrides option overrides
+   */
   constructor(protected overrides: Partial<FactoryOptions<Entity, Entities>> = {}) {}
 
+  /**
+   * Return an instance of entity.
+   *
+   * @param entity An instance of the configured entity (if provided in options)
+   */
   protected async entity(entity?: Entity): Promise<Entity> {
     if (entity) {
       return entity
@@ -29,8 +47,8 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
   }
 
   /**
-   * This function is used to alter the generated values of entity, before it
-   * is persist into the database
+   * This function is used to alter the generated values of entity,
+   * before it is persisted to the database.
    */
   map(mapFunction: (entity: Entity) => Promise<void> | void) {
     this.mapFunction = mapFunction
@@ -116,6 +134,11 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
     return entity
   }
 
+  /**
+   * Return an instance of the sub factory for the given key.
+   *
+   * @param key key of factory to return
+   */
   public subFactory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
     return resolveFactory(key, this.options.factories, this.overrides.factories)
   }

@@ -9,16 +9,35 @@ export interface SeederOptions<Entities> {
   seeders?: SeederTypeOrClass[]
 }
 
+/**
+ * Seeder
+ */
 export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
   /**
    * Options
    */
   protected options: SeederOptions<Entities> = {}
 
+  /**
+   * Constructor
+   *
+   * @param overrides option overrides
+   */
   constructor(private overrides: SeederOptions<Entities> = {}) {}
 
+  /**
+   * Run the seeder logic.
+   *
+   * @param dataSource TypeORM data source
+   */
   abstract run(dataSource: DataSource): Promise<void>
 
+  /**
+   * Helper method for running sub-seeders.
+   *
+   * @param dataSource TypeORM data source
+   * @param seeders Array of seeders to run
+   */
   protected async call(dataSource: DataSource, seeders: SeederTypeOrClass[] = []): Promise<void> {
     const allSeeders = this.seeders(seeders)
 
@@ -31,6 +50,11 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
     }
   }
 
+  /**
+   * Return an instance of the factory for the given key.
+   *
+   * @param key key of factory to return
+   */
   public factory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
     return resolveFactory(key, this.options.factories, this.overrides.factories)
   }

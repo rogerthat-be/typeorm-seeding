@@ -4,6 +4,9 @@ import { ConfigManager } from './configuration/config-manager'
 import { Seeder } from './seeder'
 import { fetchDataSource } from './configuration/fetch-data-source'
 
+/**
+ * Seeding
+ */
 export class Seeding {
   static configure(configOverrides: SeedingConfig) {
     ConfigManager.getInstance().merge(configOverrides)
