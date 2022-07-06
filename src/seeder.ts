@@ -10,7 +10,10 @@ export interface SeederOptions<Entities> {
 }
 
 export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
-  protected abstract options: SeederOptions<Entities>
+  /**
+   * Options
+   */
+  protected options: SeederOptions<Entities> = {}
 
   constructor(private overrides: SeederOptions<Entities> = {}) {}
 

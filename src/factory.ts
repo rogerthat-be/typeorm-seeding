@@ -11,7 +11,10 @@ export interface FactoryOptions<T, Entities> {
 }
 
 export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLiteral> {
-  protected abstract options: FactoryOptions<Entity, Entities>
+  /**
+   * Options
+   */
+  protected options: FactoryOptions<Entity, Entities> = {}
 
   private mapFunction?: (entity: Entity) => Promise<void> | void
 
