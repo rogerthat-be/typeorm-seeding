@@ -20,10 +20,10 @@ export type SeedingConfig = {
 
 export type SeedingRunConfig = Omit<SeedingConfig, 'seedingConfig'>
 
-export type SeederTypeOrClass = Seeder | ClassConstructor<Seeder>
+export type SeederInstanceOrClass = Seeder | ClassConstructor<Seeder>
 
-export type FactoryTypeOrClass<T> = Factory<T> | ClassConstructor<Factory<T>>
+export type FactoryInstanceOrClass<T> = Factory<T> | ClassConstructor<Factory<T>>
 
 export type FactoriesConfiguration<T extends ObjectLiteral = ObjectLiteral> = {
-  [K in keyof T]?: FactoryTypeOrClass<T[K]>
+  [K in keyof T]?: FactoryInstanceOrClass<T[K]>
 }

@@ -1,4 +1,4 @@
-import { FactoriesConfiguration, FactoryTypeOrClass } from '../types'
+import { FactoriesConfiguration, FactoryInstanceOrClass } from '../types'
 
 import { Factory } from '../factory'
 
@@ -18,7 +18,7 @@ export function resolveFactory<Entities, K extends keyof FactoriesConfiguration<
   const mergedFactories: FactoriesConfiguration<Entities> = { ...factories, ...factoryOverrides }
 
   // try to get the factory for given key
-  const factory: FactoryTypeOrClass<Entities[K]> | undefined = mergedFactories[key] ?? undefined
+  const factory: FactoryInstanceOrClass<Entities[K]> | undefined = mergedFactories[key] ?? undefined
 
   // is already an instance?
   if (factory instanceof Factory) {

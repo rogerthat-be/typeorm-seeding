@@ -1,12 +1,12 @@
 import { DataSource, ObjectLiteral } from 'typeorm'
-import { FactoriesConfiguration, SeederTypeOrClass } from './types'
+import { FactoriesConfiguration, SeederInstanceOrClass } from './types'
 
 import { Factory } from './factory'
 import { resolveFactory } from './utils/resolve-factory.util'
 
 export interface SeederOptions<Entities> {
   factories?: FactoriesConfiguration<Entities>
-  seeders?: SeederTypeOrClass[]
+  seeders?: SeederInstanceOrClass[]
 }
 
 /**
@@ -38,7 +38,7 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    * @param dataSource TypeORM data source
    * @param seeders Array of seeders to run
    */
-  protected async call(dataSource: DataSource, seeders: SeederTypeOrClass[] = []): Promise<void> {
+  protected async call(dataSource: DataSource, seeders: SeederInstanceOrClass[] = []): Promise<void> {
     const allSeeders = this.seeders(seeders)
 
     for (const seeder of allSeeders) {
@@ -70,7 +70,7 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    * 2. Seeders passed as overrides
    * 3. Seeders set as class options
    */
-  protected seeders(seeders: SeederTypeOrClass[] = []): SeederTypeOrClass[] {
+  protected seeders(seeders: SeederInstanceOrClass[] = []): SeederInstanceOrClass[] {
     return seeders.length
       ? seeders
       : this.overrides.seeders?.length

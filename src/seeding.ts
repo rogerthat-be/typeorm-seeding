@@ -1,4 +1,4 @@
-import { SeederTypeOrClass, SeedingConfig, SeedingRunConfig } from './types'
+import { SeederInstanceOrClass, SeedingConfig, SeedingRunConfig } from './types'
 
 import { ConfigManager } from './configuration/config-manager'
 import { Seeder } from './seeder'
@@ -17,7 +17,7 @@ export class Seeding {
   }
 
   static async run(
-    entrySeeders: SeederTypeOrClass | SeederTypeOrClass[],
+    entrySeeders: SeederInstanceOrClass | SeederInstanceOrClass[],
     configOverrides?: SeedingRunConfig,
   ): Promise<void> {
     if (configOverrides) this.configure(configOverrides)
