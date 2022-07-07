@@ -45,7 +45,7 @@ describe(Seeder, () => {
   describe(Seeder.prototype.run, () => {
     test('Should seed users with overrides', async () => {
       class PetFactory2 extends Factory<Pet2, { user: User2 }> {
-        protected options = { entity: Pet2, factories: { user: new UserFactory() } }
+        protected options = { entity: Pet2, subFactories: { user: new UserFactory() } }
 
         protected async entity(pet: Pet2): Promise<Pet2> {
           pet.name = 'Fluggy'
@@ -61,7 +61,7 @@ describe(Seeder, () => {
         seeders: [
           new PetSeeder({
             factories: {
-              pet: new PetFactory2({ factories: { user: new UserFactory({ entity: User2 }) } }),
+              pet: new PetFactory2({ subFactories: { user: new UserFactory({ entity: User2 }) } }),
             },
           }),
         ],

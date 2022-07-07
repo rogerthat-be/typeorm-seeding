@@ -5,7 +5,7 @@ import { UserFactory } from './User.factory'
 import { faker } from '@faker-js/faker'
 
 export class PetFactory extends Factory<Pet, { user: User }> {
-  protected options = { entity: Pet, factories: { user: new UserFactory() } }
+  protected options = { entity: Pet, subFactories: { user: new UserFactory() } }
 
   protected async entity(pet: Pet): Promise<Pet> {
     pet.name = faker.name.findName()

@@ -7,7 +7,7 @@ import { resolveFactory } from './utils/resolve-factory.util'
 
 export interface FactoryOptions<T, Entities> {
   entity?: ClassConstructor<T>
-  factories?: FactoriesConfiguration<Entities>
+  subFactories?: FactoriesConfiguration<Entities>
 }
 
 /**
@@ -140,6 +140,6 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
    * @param key key of factory to return
    */
   public subFactory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
-    return resolveFactory(key, this.options.factories, this.overrides.factories)
+    return resolveFactory(key, this.options.subFactories, this.overrides.subFactories)
   }
 }
