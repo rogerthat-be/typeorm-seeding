@@ -9,14 +9,11 @@ describe(ConfigManager.prototype.merge, () => {
     ConfigManager.getInstance().replace()
   })
 
-  test('Should return initial config if not updated', async () => {
-    const initialConfig = configurationManager.configuration
-    ConfigManager.getInstance().merge({
+  test('Should match default configuration', async () => {
+    expect(configurationManager.configuration).toMatchObject({
       root: '',
-      seedingConfig: 'seeding.ts',
+      seedingConfig: 'seeding.js',
     })
-
-    expect(configurationManager.configuration).toMatchObject(initialConfig)
   })
 
   test('Should update data source configuration', async () => {

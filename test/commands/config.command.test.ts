@@ -15,11 +15,11 @@ describe(ConfigCommand, () => {
 
   describe(ConfigCommand.prototype.handler, () => {
     test('Should use the config file argument', async () => {
-      expect(yargs.command(command).parse('config -c test/seeding.ts')).resolves.toBeTruthy()
+      expect(yargs.command(command).parse('config -c test/__fixtures__/seeding.js')).resolves.toBeTruthy()
     })
 
     test('Should use the config directory argument', async () => {
-      expect(yargs.command(command).parse('config -r . -c test/seeding.ts')).resolves.toBeTruthy()
+      expect(yargs.command(command).parse('config -r . -c test/__fixtures__/seeding.js')).resolves.toBeTruthy()
     })
 
     test('Should throw error', async () => {

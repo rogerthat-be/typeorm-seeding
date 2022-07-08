@@ -13,7 +13,7 @@ export class ConfigManager {
   }
 
   get configuration(): SeedingConfig {
-    return { root: '', seedingConfig: 'seeding.ts', dataSourceConfig: 'ormconfig.ts', ...this.config }
+    return { root: '', seedingConfig: 'seeding.js', dataSourceConfig: 'ormconfig.js', ...this.config }
   }
 
   merge(config: Partial<SeedingConfig> = {}) {

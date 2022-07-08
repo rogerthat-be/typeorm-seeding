@@ -1,37 +1,37 @@
 import { Seeding } from '../../src/seeding'
+import { SeedingCommandConfig } from '../../src/types'
 import { getCommandConfig } from '../../src/configuration/get-command-config'
 
 describe(getCommandConfig, () => {
-  test('Should get default data source', async () => {
-    Seeding.reconfigure({ root: __dirname, seedingConfig: '../seeding.ts' })
-    const options = await getCommandConfig()
+  test('Should get seed command configuration', async () => {
+    Seeding.reconfigure({
+      root: __dirname,
+      seedingConfig: '../__fixtures__/seeding.js',
+    })
 
-    expect(options.seeders).toBeDefined()
-    expect(options.seeders).toBeInstanceOf(Array)
-    expect(options.defaultSeeder).toBeDefined()
+    const options: SeedingCommandConfig = await getCommandConfig()
+
+    expect(options.seeders).toEqual(['test/__fixtures__/seeders/**/*.seeder.ts'])
+    expect(options.defaultSeeder).toEqual('UserSeeder')
   })
 
-  test('Should get memory data source', async () => {
-    Seeding.reconfigure({ root: __dirname, seedingConfig: '../seeding.ts' })
-    const options = await getCommandConfig()
+  test('Should get seed command configuration overridden by env variables', async () => {
+    Seeding.reconfigure({ root: __dirname, seedingConfig: '../__fixtures__/seeding.js' })
 
-    expect(options.seeders).toBeDefined()
-    expect(options.seeders).toBeInstanceOf(Array)
-    expect(options.defaultSeeder).toBeDefined()
-  })
+    const options: SeedingCommandConfig = await getCommandConfig()
 
-  test('Should get default data source with overrided env variables', async () => {
+    expect(options.seeders).toEqual(['test/__fixtures__/seeders/**/*.seeder.ts'])
+    expect(options.defaultSeeder).toEqual('UserSeeder')
+
     const OLD_ENV = { ...process.env }
-    process.env.TYPEORM_SEEDING_SEEDERS = 'overrided'
-    process.env.TYPEORM_SEEDING_DEFAULT_SEEDER = 'overrided'
+    process.env.TYPEORM_SEEDING_SEEDERS = 'overridden'
+    process.env.TYPEORM_SEEDING_DEFAULT_SEEDER = 'overridden'
 
-    Seeding.reconfigure({ root: __dirname, seedingConfig: '../seeding.ts' })
-    const options = await getCommandConfig()
-    expect(options.seeders).toBeDefined()
-    expect(options.seeders).toBeInstanceOf(Array)
-    expect(options.seeders).toEqual(['overrided'])
-    expect(options.defaultSeeder).toBeDefined()
-    expect(options.defaultSeeder).toBe('overrided')
+    const optionsOverride = await getCommandConfig()
+
+    expect(optionsOverride.seeders).toEqual(['overridden'])
+    expect(optionsOverride.defaultSeeder).toBeDefined()
+    expect(optionsOverride.defaultSeeder).toBe('overridden')
 
     process.env = { ...OLD_ENV }
   })

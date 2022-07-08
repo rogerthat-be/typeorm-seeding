@@ -50,26 +50,28 @@ yarn add [-D] @concepta/typeorm-seeding
 
 To configure the path to your seeders change the TypeORM config file or use environment variables like TypeORM. If both are used the environment variables will be prioritized.
 
-**ormconfig.(ts|js|json)**
+### ormconfig.js
 
-```typescript
-module.exports = {
+```javascript
+const typeorm = require('typeorm')
+
+module.exports = new typeorm.DataSource({
   type: 'sqlite',
   database: ':memory:',
   entities: ['src/entities/**/*{.ts,.js}'],
 }
 ```
 
-**seeding.(ts|js|json)**
+### seeding.js
 
-```typescript
+```javascript
 module.exports = {
-  seeders: ['src/seeds/**/*{.ts,.js}'],
+  seeders: ['src/seeders/**/*{.ts,.js}'],
   defaultSeeder: 'RootSeeder',
 }
 ```
 
-**.env**
+### .env
 
 ```
 TYPEORM_SEEDING_SEEDERS=src/seeds/**/*{.ts,.js}
@@ -343,7 +345,7 @@ Example result
 | Option                    | Default         | Description                                      |
 | ------------------------- | --------------- | ------------------------------------------------ |
 | `--root` or `-r`          | `process.cwd()` | Path to the project root                         |
-| `--seedingConfig` or `-c` | `seeding.ts`    | Relative path to the seeding config from `root`. |
+| `--seedingConfig` or `-c` | `seeding.js`    | Relative path to the seeding config from `root`. |
 
 ### `seed`
 
@@ -358,8 +360,8 @@ typeorm-seeding seed
 | Option                       | Default         | Description                                              |
 | ---------------------------- | --------------- | -------------------------------------------------------- |
 | `--root` or `-r`             | `process.cwd()` | Path to the project root                                 |
-| `--dataSourceConfig` or `-d` | `ormconfig.ts`  | Relative path to TypeORM data source config from `root`. |
-| `--seedingConfig` or `-c`    | `seeding.ts`    | Relative path to the seeding config from `root`.         |
+| `--dataSourceConfig` or `-d` | `ormconfig.js`  | Relative path to TypeORM data source config from `root`. |
+| `--seedingConfig` or `-c`    | `seeding.js`    | Relative path to the seeding config from `root`.         |
 | `--seed` or `-s`             |                 | Run a specific seeder class to run individually.         |
 
 ## Testing Features

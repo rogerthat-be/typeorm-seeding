@@ -1,6 +1,6 @@
 import { Pet } from '../entities/Pet.entity'
-import { PetFactory } from '../factories/Pet.factory'
-import { Seeder } from '../../../src'
+import { PetFactory } from '../factories/pet.factory'
+import { Seeder } from '../../../src/seeder'
 
 type PetEntities = { pet: Pet }
 

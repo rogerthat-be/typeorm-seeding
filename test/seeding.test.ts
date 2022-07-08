@@ -1,9 +1,9 @@
 import type { DataSource } from 'typeorm'
 import { Pet } from './__fixtures__/entities/Pet.entity'
-import { PetSeeder } from './__fixtures__/seeders/Pet.seeder'
+import { PetSeeder } from './__fixtures__/seeders/pet.seeder'
 import { Seeding } from '../src/seeding'
 import { User } from './__fixtures__/entities/User.entity'
-import { UserSeeder } from './__fixtures__/seeders/User.seeder'
+import { UserSeeder } from './__fixtures__/seeders/user.seeder'
 import { fetchDataSource } from '../src/configuration/fetch-data-source'
 
 describe(Seeding.run, () => {
@@ -12,7 +12,8 @@ describe(Seeding.run, () => {
   beforeEach(async () => {
     Seeding.reconfigure({
       root: __dirname,
-      dataSourceConfig: 'ormconfig.ts',
+      seedingConfig: '__fixtures__/ormconfig.js',
+      dataSourceConfig: '__fixtures__/ormconfig.js',
     })
     dataSource = await fetchDataSource()
   })

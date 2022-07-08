@@ -18,9 +18,16 @@ export const fetchDataSource = async (): Promise<DataSource> => {
   } else if (dataSourceConfig) {
     // first we need to import it
     const path = `${root}/${dataSourceConfig}`
-    const options = await import(path)
-    // let's go
-    dataSourceToReturn = new DataSource(options)
+    // import the configuration
+    const config = await import(path)
+    // make sure it's valid
+    if (config.default instanceof DataSource) {
+      dataSourceToReturn = config.default
+    } else if (config instanceof DataSource) {
+      dataSourceToReturn = config
+    } else {
+      throw new Error(`The data source config file ${path} does not contain an export of a valid DataSource instance`)
+    }
   } else {
     throw new Error('Unable to load data source, no configurations were found')
   }

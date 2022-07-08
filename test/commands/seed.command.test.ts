@@ -15,7 +15,9 @@ describe(SeedCommand, () => {
   describe(SeedCommand.prototype.handler, () => {
     test('Should use default values', async () => {
       await expect(
-        yargs.command(command).parse('seed -d test/ormconfig.ts -c test/seeding.ts -s UserSeeder'),
+        yargs
+          .command(command)
+          .parse('seed -d test/__fixtures__/ormconfig.js -c test/__fixtures__/seeding.js -s UserSeeder'),
       ).resolves.toBeTruthy()
     })
   })

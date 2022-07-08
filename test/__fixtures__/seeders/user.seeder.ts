@@ -1,8 +1,8 @@
 import type { DataSource } from 'typeorm'
-import { PetSeeder } from './Pet.seeder'
-import { Seeder } from '../../../src'
+import { PetSeeder } from './pet.seeder'
+import { Seeder } from '../../../src/seeder'
 import { User } from '../entities/User.entity'
-import { UserFactory } from '../factories/User.factory'
+import { UserFactory } from '../factories/user.factory'
 
 export class UserSeeder extends Seeder<{ user: User }> {
   protected options = {

@@ -44,7 +44,7 @@ describe(fetchDataSource, () => {
   test('Should create a datasource from config file', async () => {
     Seeding.configure({
       root: __dirname,
-      dataSourceConfig: '../ormconfig.ts',
+      dataSourceConfig: '../__fixtures__/ormconfig.js',
     })
 
     const dataSource = await fetchDataSource()
