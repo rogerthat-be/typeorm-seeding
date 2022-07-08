@@ -1,4 +1,1 @@
-module.exports = {
-  seeders: ['test/__fixtures__/seeders/**/*.seeder.ts'],
-  defaultSeeder: 'UserSeeder',
-}
+// see jest-setup.ts

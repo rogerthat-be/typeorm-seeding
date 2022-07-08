@@ -15,8 +15,8 @@ describe(Factory, () => {
   beforeEach(async () => {
     Seeding.reconfigure({
       root: __dirname,
-      seedingConfig: '__fixtures__/ormconfig.js',
-      dataSourceConfig: '__fixtures__/ormconfig.js',
+      dataSourceFile: '__fixtures__/ormconfig.js',
+      seedingSourceFile: '__fixtures__/ormconfig.js',
     })
     dataSource = await fetchDataSource()
   })

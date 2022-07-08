@@ -12,7 +12,8 @@ describe(ConfigManager.prototype.merge, () => {
   test('Should match default configuration', async () => {
     expect(configurationManager.configuration).toMatchObject({
       root: '',
-      seedingConfig: 'seeding.js',
+      dataSourceFile: 'ormconfig.js',
+      seedingSourceFile: 'seeding.js',
     })
   })
 
@@ -20,14 +21,14 @@ describe(ConfigManager.prototype.merge, () => {
     const newConfig: SeedingConfig = {
       dataSource: new DataSource({ type: 'sqlite', database: ':memory:' }),
       dataSourceOptions: { type: 'sqlite', database: ':memory:' },
-      dataSourceConfig: 'path/to/orm/config',
-      seedingConfig: 'path/to/seeder/config',
+      dataSourceFile: 'path/to/orm/config',
+      seedingSourceFile: 'path/to/seeder/config',
     }
     ConfigManager.getInstance().merge(newConfig)
 
     expect(configurationManager.configuration.dataSource).toBeInstanceOf(DataSource)
     expect(configurationManager.configuration.dataSourceOptions).toEqual({ type: 'sqlite', database: ':memory:' })
-    expect(configurationManager.configuration.dataSourceConfig).toEqual('path/to/orm/config')
-    expect(configurationManager.configuration.seedingConfig).toEqual('path/to/seeder/config')
+    expect(configurationManager.configuration.dataSourceFile).toEqual('path/to/orm/config')
+    expect(configurationManager.configuration.seedingSourceFile).toEqual('path/to/seeder/config')
   })
 })

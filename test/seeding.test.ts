@@ -12,8 +12,8 @@ describe(Seeding.run, () => {
   beforeEach(async () => {
     Seeding.reconfigure({
       root: __dirname,
-      seedingConfig: '__fixtures__/ormconfig.js',
-      dataSourceConfig: '__fixtures__/ormconfig.js',
+      dataSourceFile: '__fixtures__/ormconfig.js',
+      seedingSourceFile: '__fixtures__/seeding.js',
     })
     dataSource = await fetchDataSource()
   })
@@ -24,7 +24,7 @@ describe(Seeding.run, () => {
   })
 
   test(`Should seed with only one seeder provided`, async () => {
-    await Seeding.run(UserSeeder)
+    await Seeding.run([UserSeeder])
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 
@@ -43,11 +43,17 @@ describe(Seeding.run, () => {
     expect(totalPets).toBe(20)
   })
 
-  test(`Should seed with custom options`, async () => {
-    await Seeding.run(UserSeeder)
+  test(`Should seed with custom seeder source file`, async () => {
+    Seeding.reconfigure({})
+
+    await Seeding.run({
+      root: __dirname,
+      dataSourceFile: '__fixtures__/ormconfig.js',
+      seedingSourceFile: '__fixtures__/seeding.js',
+    })
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 
-    expect(totalUsers).toBe(20)
+    expect(totalUsers).toBe(30)
   })
 })

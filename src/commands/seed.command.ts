@@ -1,18 +1,18 @@
 import { Arguments, Argv, CommandModule, exit } from 'yargs'
-import { ClassConstructor, SeedingCommandConfig } from '../types'
 import ora, { Ora } from 'ora'
 
+import { ClassConstructor } from '../types'
 import { Seeder } from '../seeder'
 import { SeederImportException } from '../exceptions/seeder-import.exception'
 import { Seeding } from '../seeding'
-import { calculateFilePaths } from '../utils/calcuate-file-paths.util'
-import { getCommandConfig } from '../configuration/get-command-config'
+import { SeedingSource } from '../configuration/seeding-source'
+import { fetchSeedingSource } from '../configuration/fetch-seeding-source'
 import { gray } from 'chalk'
 
 interface SeedCommandArguments extends Arguments {
   root?: string
-  dataSourceConfig?: string
-  seedingConfig?: string
+  dataSource?: string
+  seedingSource?: string
   seed?: string
 }
 
@@ -32,12 +32,12 @@ export class SeedCommand implements CommandModule {
         default: process.cwd(),
       })
       .option('d', {
-        alias: 'dataSourceConfig',
+        alias: 'dataSource',
         type: 'string',
         describe: 'Path to the data source config file.',
       })
       .option('c', {
-        alias: 'seedingConfig',
+        alias: 'seedingSource',
         type: 'string',
         describe: 'Path to the seeder config file.',
       })
@@ -54,13 +54,17 @@ export class SeedCommand implements CommandModule {
   async handler(args: SeedCommandArguments) {
     const spinner = ora({ text: 'Loading ormconfig', isSilent: process.env.NODE_ENV === 'test' }).start()
 
-    // Get TypeORM config file
-    let config!: SeedingCommandConfig
+    // Get seeding source
+    let seedingSource!: SeedingSource
 
     try {
       const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
-      Seeding.configure({ ...args, root: rootPath })
-      config = await getCommandConfig()
+      Seeding.configure({
+        root: rootPath,
+        dataSourceFile: args.dataSource,
+        seedingSourceFile: args.seedingSource,
+      })
+      seedingSource = await fetchSeedingSource()
       spinner.succeed('ORM Config loaded')
     } catch (error) {
       panic(spinner, error as Error, 'Could not load the config file!')
@@ -72,19 +76,17 @@ export class SeedCommand implements CommandModule {
     let seeder!: ClassConstructor<Seeder>
 
     try {
-      if (config.seeders?.length) {
-        const seederFiles = calculateFilePaths(config.seeders)
-        const seedersImported = await Promise.all(seederFiles.map((seederFile) => import(seederFile)))
-        const allSeeders = seedersImported.reduce((prev, curr) => Object.assign(prev, curr), {})
+      if (seedingSource.seeders?.length) {
+        const allSeeders = await seedingSource.resolveSeeders()
 
         let seederWanted = ''
 
         if (args.seed) {
           spinner.info(`Specific seeder ${args.seed} was requested`)
           seederWanted = args.seed
-        } else if (config.defaultSeeder) {
-          spinner.info(`Default seeder ${config.defaultSeeder} was requested`)
-          seederWanted = config.defaultSeeder
+        } else if (seedingSource.defaultSeeder) {
+          spinner.info(`Default seeder ${seedingSource.defaultSeeder} was requested`)
+          seederWanted = seedingSource.defaultSeeder
         }
 
         // did we get a seeder?
@@ -111,7 +113,7 @@ export class SeedCommand implements CommandModule {
     // Run seeder
     spinner.start(`Executing ${seeder.name} Seeder`)
     try {
-      await Seeding.run(seeder)
+      await Seeding.run([seeder])
       spinner.succeed(`Seeder ${seeder.name} executed`)
     } catch (error) {
       panic(spinner, error as Error, `Could not run the seed ${seeder.name}!`)

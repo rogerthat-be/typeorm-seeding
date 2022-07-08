@@ -1,12 +1,12 @@
 import { Arguments, Argv, CommandModule, exit } from 'yargs'
 
 import { Seeding } from '../seeding'
-import { getCommandConfig } from '../configuration/get-command-config'
+import { fetchSeedingSource } from '../configuration/fetch-seeding-source'
 import { red } from 'chalk'
 
 interface ConfigCommandArguments extends Arguments {
   root?: string
-  seedingConfig?: string
+  seedingSource?: string
 }
 
 export class ConfigCommand implements CommandModule {
@@ -25,7 +25,7 @@ export class ConfigCommand implements CommandModule {
         default: process.cwd(),
       })
       .option('c', {
-        alias: 'seedingConfig',
+        alias: 'seedingSource',
         type: 'string',
         describe: 'Path to the seeder config file',
       })
@@ -40,9 +40,9 @@ export class ConfigCommand implements CommandModule {
     try {
       Seeding.configure({
         root: rootPath,
-        seedingConfig: args.seedingConfig,
+        seedingSourceFile: args.seedingSource,
       })
-      const config = await getCommandConfig()
+      const config = await fetchSeedingSource()
       console.log(config)
     } catch (error: unknown) {
       console.log('\n❌ ', red('Could not find the seeder config file'))

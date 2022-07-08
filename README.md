@@ -48,28 +48,35 @@ yarn add [-D] @concepta/typeorm-seeding
 
 ### Configuration
 
-To configure the path to your seeders change the TypeORM config file or use environment variables like TypeORM. If both are used the environment variables will be prioritized.
+To enable seeding from the CLI, you must provide a DataSource config, and a SeedingSource config.
+Environment variables will be respected and prioritized.
 
-### ormconfig.js
+### DataSource Config
 
 ```javascript
-const typeorm = require('typeorm')
+const { DataSource } = require('typeorm')
 
-module.exports = new typeorm.DataSource({
+module.exports = new DataSource({
   type: 'sqlite',
   database: ':memory:',
   entities: ['src/entities/**/*{.ts,.js}'],
-}
+})
 ```
 
-### seeding.js
+> If no `--dataSource` is provided, the default is `ormconfig.js`
+
+### SeedingSource Config
 
 ```javascript
-module.exports = {
+const { SeedingSource } = require('typeorm-seeding')
+
+module.exports = new SeedingSource({
   seeders: ['src/seeders/**/*{.ts,.js}'],
   defaultSeeder: 'RootSeeder',
-}
+})
 ```
+
+> If no `--seedingSource` is provided, the default is `seeding.js`
 
 ### .env
 
@@ -345,7 +352,7 @@ Example result
 | Option                    | Default         | Description                                      |
 | ------------------------- | --------------- | ------------------------------------------------ |
 | `--root` or `-r`          | `process.cwd()` | Path to the project root                         |
-| `--seedingConfig` or `-c` | `seeding.js`    | Relative path to the seeding config from `root`. |
+| `--seedingSource` or `-c` | `seeding.js`    | Relative path to the seeding config from `root`. |
 
 ### `seed`
 
@@ -357,12 +364,12 @@ typeorm-seeding seed
 
 ##### Options
 
-| Option                       | Default         | Description                                              |
-| ---------------------------- | --------------- | -------------------------------------------------------- |
-| `--root` or `-r`             | `process.cwd()` | Path to the project root                                 |
-| `--dataSourceConfig` or `-d` | `ormconfig.js`  | Relative path to TypeORM data source config from `root`. |
-| `--seedingConfig` or `-c`    | `seeding.js`    | Relative path to the seeding config from `root`.         |
-| `--seed` or `-s`             |                 | Run a specific seeder class to run individually.         |
+| Option                    | Default         | Description                                              |
+| ------------------------- | --------------- | -------------------------------------------------------- |
+| `--root` or `-r`          | `process.cwd()` | Path to the project root                                 |
+| `--dataSource` or `-d`    | `ormconfig.js`  | Relative path to TypeORM data source config from `root`. |
+| `--seedingSource` or `-c` | `seeding.js`    | Relative path to the seeding config from `root`.         |
+| `--seed` or `-s`          |                 | Run a specific seeder class to run individually.         |
 
 ## Testing Features
 
@@ -380,15 +387,21 @@ Configurations properties will be searched in the order seen below.
 > Once a data source property is found, **the remaining properties will be ignored**.
 
 ```typescript
-type SeedingRunConfig = {
+type SeedingConfig = {
+  // path to project root (for file configs)
+  root?: string
   // explicit data source instance
   dataSource?: DataSource
   // data source options for creating a data source instance
   dataSourceOptions?: DataSourceOptions
   // path to data source config file, relative to `root`
-  dataSourceConfig?: string
-  // path to project root (for file configs)
-  root?: string
+  dataSourceFile?: string
+  // explicit seeding source instance
+  seedingSource?: SeedingSource
+  // seeding source options for creating a seeding source instance
+  seedingSourceOptions?: SeedingSourceOptions
+  // path to seeding source config file, relative to `root`
+  seedingSourceFile?: string
 }
 ```
 
@@ -424,8 +437,8 @@ If `configOverrides` are passed, they will be merged on top of any existing conf
 
 ```typescript
 Seeding.run(
-  entrySeeders: SeederTypeOrClass | SeederTypeOrClass[],
-  configOverrides?: SeedingRunConfig,
+  entrySeeders: SeederTypeOrClass[],
+  configOverrides?: SeedingConfig,
 ): Promise<void>
 ```
 

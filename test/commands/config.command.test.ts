@@ -1,4 +1,5 @@
 import { ConfigCommand } from '../../src/commands/config.command'
+import { Seeding } from '../../src/seeding'
 import yargs from 'yargs'
 
 describe(ConfigCommand, () => {
@@ -10,21 +11,26 @@ describe(ConfigCommand, () => {
   })
 
   beforeEach(() => {
+    Seeding.reconfigure({})
     command = new ConfigCommand()
   })
 
   describe(ConfigCommand.prototype.handler, () => {
     test('Should use the config file argument', async () => {
-      expect(yargs.command(command).parse('config -c test/__fixtures__/seeding.js')).resolves.toBeTruthy()
+      expect(
+        yargs.command(command).parse('config -c test/__fixtures__/seeding.js -d test/__fixtures__/ormconfig.js'),
+      ).resolves.toBeTruthy()
     })
 
     test('Should use the config directory argument', async () => {
-      expect(yargs.command(command).parse('config -r . -c test/__fixtures__/seeding.js')).resolves.toBeTruthy()
+      expect(
+        yargs.command(command).parse('config -c test/__fixtures__/seeding.js -d test/__fixtures__/ormconfig.js'),
+      ).resolves.toBeTruthy()
     })
 
     test('Should throw error', async () => {
       const exitFn = jest.fn()
-      jest.spyOn(process, 'exit').mockImplementation(exitFn as any)
+      jest.spyOn(process, 'exit').mockImplementationOnce(exitFn as any)
 
       await yargs.command(command).parse('config -c NOPE')
 

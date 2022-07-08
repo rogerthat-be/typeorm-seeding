@@ -2,10 +2,11 @@ import type { DataSource, DataSourceOptions, ObjectLiteral } from 'typeorm'
 
 import { Factory } from './factory'
 import { Seeder } from './seeder'
+import { SeedingSource } from './configuration/seeding-source'
 
 export type ClassConstructor<T> = new () => T
 
-export type SeedingCommandConfig = {
+export type SeedingSourceOptions = {
   seeders?: string[]
   defaultSeeder?: string
 }
@@ -14,11 +15,11 @@ export type SeedingConfig = {
   root?: string
   dataSource?: DataSource
   dataSourceOptions?: DataSourceOptions
-  dataSourceConfig?: string
-  seedingConfig?: string
+  dataSourceFile?: string
+  seedingSource?: SeedingSource
+  seedingSourceOptions?: SeedingSourceOptions
+  seedingSourceFile?: string
 }
-
-export type SeedingRunConfig = Omit<SeedingConfig, 'seedingConfig'>
 
 export type SeederInstanceOrClass = Seeder | ClassConstructor<Seeder>
 

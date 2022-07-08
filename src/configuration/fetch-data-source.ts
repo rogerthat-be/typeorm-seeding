@@ -3,7 +3,7 @@ import { DataSource } from 'typeorm'
 import { Seeding } from '../seeding'
 
 export const fetchDataSource = async (): Promise<DataSource> => {
-  const { root, dataSource, dataSourceConfig, dataSourceOptions } = ConfigManager.getInstance().configuration
+  const { root, dataSource, dataSourceOptions, dataSourceFile } = ConfigManager.getInstance().configuration
 
   // the data source we will be returning
   let dataSourceToReturn: DataSource
@@ -15,9 +15,9 @@ export const fetchDataSource = async (): Promise<DataSource> => {
   } else if (dataSourceOptions) {
     // received explicit data source options
     dataSourceToReturn = new DataSource(dataSourceOptions)
-  } else if (dataSourceConfig) {
+  } else if (dataSourceFile) {
     // first we need to import it
-    const path = `${root}/${dataSourceConfig}`
+    const path = `${root}/${dataSourceFile}`
     // import the configuration
     const config = await import(path)
     // make sure it's valid

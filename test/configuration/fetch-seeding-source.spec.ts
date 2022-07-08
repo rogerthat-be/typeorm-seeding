@@ -1,24 +1,24 @@
 import { Seeding } from '../../src/seeding'
-import { SeedingCommandConfig } from '../../src/types'
-import { getCommandConfig } from '../../src/configuration/get-command-config'
+import { SeedingSource } from '../../src/configuration/seeding-source'
+import { fetchSeedingSource } from '../../src/configuration/fetch-seeding-source'
 
-describe(getCommandConfig, () => {
+describe(fetchSeedingSource, () => {
   test('Should get seed command configuration', async () => {
     Seeding.reconfigure({
       root: __dirname,
-      seedingConfig: '../__fixtures__/seeding.js',
+      seedingSourceFile: '../__fixtures__/seeding.js',
     })
 
-    const options: SeedingCommandConfig = await getCommandConfig()
+    const options: SeedingSource = await fetchSeedingSource()
 
     expect(options.seeders).toEqual(['test/__fixtures__/seeders/**/*.seeder.ts'])
     expect(options.defaultSeeder).toEqual('UserSeeder')
   })
 
   test('Should get seed command configuration overridden by env variables', async () => {
-    Seeding.reconfigure({ root: __dirname, seedingConfig: '../__fixtures__/seeding.js' })
+    Seeding.reconfigure({ root: __dirname, seedingSourceFile: '../__fixtures__/seeding.js' })
 
-    const options: SeedingCommandConfig = await getCommandConfig()
+    const options: SeedingSource = await fetchSeedingSource()
 
     expect(options.seeders).toEqual(['test/__fixtures__/seeders/**/*.seeder.ts'])
     expect(options.defaultSeeder).toEqual('UserSeeder')
@@ -27,7 +27,12 @@ describe(getCommandConfig, () => {
     process.env.TYPEORM_SEEDING_SEEDERS = 'overridden'
     process.env.TYPEORM_SEEDING_DEFAULT_SEEDER = 'overridden'
 
-    const optionsOverride = await getCommandConfig()
+    Seeding.reconfigure({
+      root: __dirname,
+      seedingSourceFile: '../__fixtures__/seeding.js',
+    })
+
+    const optionsOverride = await fetchSeedingSource()
 
     expect(optionsOverride.seeders).toEqual(['overridden'])
     expect(optionsOverride.defaultSeeder).toBeDefined()
