@@ -41,7 +41,7 @@ export class Seeding {
 
     if (!seeders.length) {
       const seedingSource = await fetchSeedingSource()
-      const resolvedSeeders = await seedingSource.resolveSeeders()
+      const resolvedSeeders = await seedingSource.seeders()
 
       if (resolvedSeeders) {
         for (const s in resolvedSeeders) {

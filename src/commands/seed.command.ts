@@ -72,38 +72,20 @@ export class SeedCommand implements CommandModule {
     }
 
     // Show seeder in console
-    spinner.start('Importing Seeder')
-    let seeder!: ClassConstructor<Seeder>
+    spinner.start('Importing Seeders')
+
+    let seeders!: ClassConstructor<Seeder>[]
 
     try {
-      if (seedingSource.seeders?.length) {
-        const allSeeders = await seedingSource.resolveSeeders()
+      let seedersWanted: string[] = []
 
-        let seederWanted = ''
-
-        if (args.seed) {
-          spinner.info(`Specific seeder ${args.seed} was requested`)
-          seederWanted = args.seed
-        } else if (seedingSource.defaultSeeder) {
-          spinner.info(`Default seeder ${seedingSource.defaultSeeder} was requested`)
-          seederWanted = seedingSource.defaultSeeder
-        }
-
-        // did we get a seeder?
-        if (seederWanted) {
-          // yes, does it exist in config
-          if (allSeeders[seederWanted]) {
-            // yes, set it
-            seeder = allSeeders[seederWanted]
-            // woot
-            spinner.succeed(`Seeder ${seederWanted} found in config`)
-          } else {
-            // not good :(
-            throw new SeederImportException(`Seeder ${seederWanted} was not found in "seeders" coniguration property`)
-          }
-        }
+      if (args.seed) {
+        spinner.info(`Specific seeders ${args.seed} were requested`)
+        seedersWanted = args.seed.split(',').map((s) => s.trim())
+        seeders = await seedingSource.seeders(seedersWanted)
       } else {
-        spinner.warn('Seeders configuration option `seeders` is missing or empty')
+        spinner.info(`Default seeders were requested`)
+        seeders = await seedingSource.defaultSeeders()
       }
     } catch (error) {
       panic(spinner, error as Error, 'Could not import seeders!')
@@ -111,12 +93,12 @@ export class SeedCommand implements CommandModule {
     }
 
     // Run seeder
-    spinner.start(`Executing ${seeder.name} Seeder`)
+    spinner.start(`Executing Seeders`)
     try {
-      await Seeding.run([seeder])
-      spinner.succeed(`Seeder ${seeder.name} executed`)
+      await Seeding.run(seeders)
+      spinner.succeed(`Seeders executed`)
     } catch (error) {
-      panic(spinner, error as Error, `Could not run the seed ${seeder.name}!`)
+      panic(spinner, error as Error, `Failed to run the seeders!`)
       return
     }
 

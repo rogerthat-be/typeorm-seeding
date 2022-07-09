@@ -6,7 +6,7 @@ jest.mock(
   () =>
     new SeedingSource({
       seeders: ['test/__fixtures__/seeders/**/*.seeder.ts'],
-      defaultSeeder: 'UserSeeder',
+      defaultSeeders: 'UserSeeder',
     }),
 )
 

@@ -8,7 +8,7 @@ export type ClassConstructor<T> = new () => T
 
 export type SeedingSourceOptions = {
   seeders?: string[]
-  defaultSeeder?: string
+  defaultSeeders?: string
 }
 
 export type SeedingConfig = {

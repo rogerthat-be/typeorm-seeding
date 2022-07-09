@@ -72,7 +72,7 @@ const { SeedingSource } = require('typeorm-seeding')
 
 module.exports = new SeedingSource({
   seeders: ['src/seeders/**/*{.ts,.js}'],
-  defaultSeeder: 'RootSeeder',
+  defaultSeeders: 'RootSeeder',
 })
 ```
 
@@ -82,7 +82,7 @@ module.exports = new SeedingSource({
 
 ```
 TYPEORM_SEEDING_SEEDERS=src/seeds/**/*{.ts,.js}
-TYPEORM_SEEDING_DEFAULT_SEEDER=RootSeeder
+TYPEORM_SEEDING_DEFAULT_SEEDERS=RootSeeder
 ```
 
 ## Introduction
@@ -343,7 +343,7 @@ Example result
 ```json
 {
   "seeders": ["sample/seeders/**/*{.ts,.js}"],
-  "defaultSeeder": "RootSeeder"
+  "defaultSeeders": "RootSeeder"
 }
 ```
 

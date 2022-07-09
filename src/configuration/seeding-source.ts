@@ -1,21 +1,49 @@
 import { ClassConstructor, SeedingSourceOptions } from '../types'
 
 import { Seeder } from '../seeder'
+import { SeederImportException } from '../exceptions/seeder-import.exception'
 import { calculateFilePaths } from '../utils/calcuate-file-paths.util'
 
 export class SeedingSource {
   constructor(private options: SeedingSourceOptions) {}
 
-  get seeders(): string[] {
-    return process.env.TYPEORM_SEEDING_SEEDERS ? [process.env.TYPEORM_SEEDING_SEEDERS] : this.options?.seeders ?? []
+  async seeders(only: string[] = []): Promise<ClassConstructor<Seeder>[]> {
+    const seederConfig = process.env.TYPEORM_SEEDING_SEEDERS
+      ? [process.env.TYPEORM_SEEDING_SEEDERS]
+      : this.options?.seeders ?? []
+
+    const seeders = await this.resolveSeeders(seederConfig)
+
+    if (only.length) {
+      // seeders we will return
+      const seedersToReturn: ClassConstructor<Seeder>[] = []
+      // loop all seeder names
+      for (const seederName of only) {
+        // exists in config?
+        if (seeders[seederName]) {
+          // push onto return array
+          seedersToReturn.push(seeders[seederName])
+        } else {
+          // not good :(
+          throw new SeederImportException(`Seeder ${seederName} was not found in "seeders" configuration property`)
+        }
+      }
+      // return them
+      return seedersToReturn
+    } else {
+      // return all
+      return Object.values(seeders)
+    }
   }
 
-  get defaultSeeder(): string {
-    return process.env.TYPEORM_SEEDING_DEFAULT_SEEDER ?? this.options.defaultSeeder ?? ''
+  async defaultSeeders(): Promise<ClassConstructor<Seeder>[]> {
+    const defaultSeeders = process.env.TYPEORM_SEEDING_DEFAULT_SEEDERS ?? this.options.defaultSeeders
+    const seederNames = defaultSeeders ? defaultSeeders.split(',').map((seederName) => seederName.trim()) : []
+    return await this.seeders(seederNames)
   }
 
-  async resolveSeeders(): Promise<Record<string, ClassConstructor<Seeder>>> {
-    const seederFiles = calculateFilePaths(this.seeders ?? [])
+  private async resolveSeeders(seeders: string[] = []): Promise<Record<string, ClassConstructor<Seeder>>> {
+    const seederFiles = calculateFilePaths(seeders)
     const seedersImported = await Promise.all(seederFiles.map((seederFile) => import(seederFile)))
     const allSeeders = seedersImported.reduce((prev, curr) => Object.assign(prev, curr), {})
     return allSeeders
