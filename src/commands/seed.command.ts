@@ -3,7 +3,6 @@ import ora, { Ora } from 'ora'
 
 import { ClassConstructor } from '../types'
 import { Seeder } from '../seeder'
-import { SeederImportException } from '../exceptions/seeder-import.exception'
 import { Seeding } from '../seeding'
 import { SeedingSource } from '../configuration/seeding-source'
 import { fetchSeedingSource } from '../configuration/fetch-seeding-source'
@@ -56,18 +55,18 @@ export class SeedCommand implements CommandModule {
 
     // Get seeding source
     let seedingSource!: SeedingSource
+    const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
 
     try {
-      const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
       Seeding.configure({
         root: rootPath,
         dataSourceFile: args.dataSource,
         seedingSourceFile: args.seedingSource,
       })
       seedingSource = await fetchSeedingSource()
-      spinner.succeed('ORM Config loaded')
+      spinner.succeed('Seeding Config loaded')
     } catch (error) {
-      panic(spinner, error as Error, 'Could not load the config file!')
+      panic(spinner, error, `Could not load the config file at ${rootPath}!`)
       return
     }
 
@@ -76,29 +75,42 @@ export class SeedCommand implements CommandModule {
 
     let seeders!: ClassConstructor<Seeder>[]
 
-    try {
-      let seedersWanted: string[] = []
+    // specific seeder(s) requested?
+    if (args.seed) {
+      // yes, parse and attempt to import
+      const seedersWanted: string[] = seedingSource.parseSeederNames(args.seed)
+      const seederNames: string = seedersWanted.join(', ')
 
-      if (args.seed) {
-        spinner.info(`Specific seeders ${args.seed} were requested`)
-        seedersWanted = args.seed.split(',').map((s) => s.trim())
+      try {
+        spinner.info(`Specific seeders ${seederNames} will be imported`)
         seeders = await seedingSource.seeders(seedersWanted)
-      } else {
-        spinner.info(`Default seeders were requested`)
-        seeders = await seedingSource.defaultSeeders()
+      } catch (error: unknown) {
+        panic(spinner, error, `Failed to import ${seederNames} seeders!`)
+        return
       }
-    } catch (error) {
-      panic(spinner, error as Error, 'Could not import seeders!')
-      return
+    } else {
+      // no, fall back to defaults
+      const seedersNames = seedingSource.defaultSeederNames().join(', ')
+
+      try {
+        spinner.info(`Default seeders ${seedersNames} will be imported`)
+        seeders = await seedingSource.defaultSeeders()
+      } catch (error) {
+        panic(spinner, error, `Could not import ${seedersNames} seeders!`)
+        return
+      }
     }
 
-    // Run seeder
-    spinner.start(`Executing Seeders`)
+    // here we go
+    const seedersNames = seeders.map((seeder) => seeder.name).join(', ')
+    spinner.start(`Executing ${seedersNames} Seeders`)
+
+    // run seeders
     try {
       await Seeding.run(seeders)
-      spinner.succeed(`Seeders executed`)
+      spinner.succeed(`Seeders ${seedersNames} executed`)
     } catch (error) {
-      panic(spinner, error as Error, `Failed to run the seeders!`)
+      panic(spinner, error, `Failed to run the ${seedersNames} seeders!`)
       return
     }
 
@@ -106,8 +118,10 @@ export class SeedCommand implements CommandModule {
   }
 }
 
-function panic(spinner: Ora, error: Error, message: string) {
-  spinner.fail(message)
-  console.error(error.message)
-  exit(1, error)
+function panic(spinner: Ora, error: unknown, message: string) {
+  const finalError = error instanceof Error ? error : new Error(String(error))
+  const finalMessage = `${message} Orginal error was: ${finalError.message}`
+  spinner.fail(finalMessage)
+  console.error(finalMessage)
+  exit(1, finalError)
 }

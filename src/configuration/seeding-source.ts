@@ -37,9 +37,16 @@ export class SeedingSource {
   }
 
   async defaultSeeders(): Promise<ClassConstructor<Seeder>[]> {
-    const defaultSeeders = process.env.TYPEORM_SEEDING_DEFAULT_SEEDERS ?? this.options.defaultSeeders
-    const seederNames = defaultSeeders ? defaultSeeders.split(',').map((seederName) => seederName.trim()) : []
-    return await this.seeders(seederNames)
+    return await this.seeders(this.defaultSeederNames())
+  }
+
+  parseSeederNames(seederNames: string): string[] {
+    return seederNames.length ? seederNames.split(',').map((seederName) => seederName.trim()) : []
+  }
+
+  defaultSeederNames(): string[] {
+    const defaultSeeders = process.env.TYPEORM_SEEDING_DEFAULT_SEEDERS ?? this.options.defaultSeeders ?? ''
+    return this.parseSeederNames(defaultSeeders)
   }
 
   private async resolveSeeders(seeders: string[] = []): Promise<Record<string, ClassConstructor<Seeder>>> {
