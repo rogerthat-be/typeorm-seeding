@@ -47,6 +47,15 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
   }
 
   /**
+   * Finalize the instance of entity.
+   *
+   * This method is called after all maps and overrides have been applied
+   *
+   * @param entity An instance of the entity
+   */
+  protected async finalize(entity: Entity): Promise<void> {} // eslint-disable-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+
+  /**
    * This function is used to alter the generated values of entity,
    * before it is persisted to the database.
    */
@@ -131,6 +140,9 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
         }
       }
     }
+
+    await this.finalize(entity)
+
     return entity
   }
 

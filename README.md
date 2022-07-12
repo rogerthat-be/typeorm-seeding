@@ -180,6 +180,19 @@ protected entity(user: User): User {
 }
 ```
 
+### `finalize`
+
+This method can be overridden to customize how the entity is finalized.
+It is called at the end of the factory lifecycle, giving one last opportunity to set defaults or perform data validation, etc.
+
+```typescript
+protected async finalize(pet: Pet): Promise<void> {
+  if (!pet.owner) {
+    pet.owner = await new UserFactory().create()
+  }
+}
+```
+
 It is possible to create more than one factory related to a single entity, with different entity functions.
 
 ### `map`

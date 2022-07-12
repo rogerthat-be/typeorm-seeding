@@ -9,8 +9,12 @@ export class PetFactory extends Factory<Pet, { user: User }> {
 
   protected async entity(pet: Pet): Promise<Pet> {
     pet.name = faker.name.findName()
-    pet.owner = await this.subFactory('user').create()
-
     return pet
+  }
+
+  protected async finalize(pet: Pet): Promise<void> {
+    if (!pet.owner) {
+      pet.owner = await this.subFactory('user').create()
+    }
   }
 }
