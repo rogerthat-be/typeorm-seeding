@@ -78,27 +78,12 @@ export class SeedCommand implements CommandModule {
     // specific seeder(s) requested?
     if (args.seed) {
       // yes, parse and attempt to import
-      const seedersWanted: string[] = seedingSource.parseSeederNames(args.seed)
-      const seederNames: string = seedersWanted.join(', ')
-
-      try {
-        spinner.info(`Specific seeders ${seederNames} will be imported`)
-        seeders = await seedingSource.seeders(seedersWanted)
-      } catch (error: unknown) {
-        panic(spinner, error, `Failed to import ${seederNames} seeders!`)
-        return
-      }
+      seeders = seedingSource.seedersFromString(args.seed)
+      spinner.info(`Specific seeder(s) have been requested`)
     } else {
       // no, fall back to defaults
-      const seedersNames = seedingSource.defaultSeederNames().join(', ')
-
-      try {
-        spinner.info(`Default seeders ${seedersNames} will be imported`)
-        seeders = await seedingSource.defaultSeeders()
-      } catch (error) {
-        panic(spinner, error, `Could not import ${seedersNames} seeders!`)
-        return
-      }
+      seeders = seedingSource.defaultSeeders
+      spinner.info(`Default seeders will used`)
     }
 
     // here we go

@@ -55,11 +55,12 @@ Environment variables will be respected and prioritized.
 
 ```javascript
 const { DataSource } = require('typeorm')
+const { User, Pet } = require('./my-module')
 
 module.exports = new DataSource({
   type: 'sqlite',
   database: ':memory:',
-  entities: ['src/entities/**/*{.ts,.js}'],
+  entities: [User, Pet],
 })
 ```
 
@@ -69,21 +70,15 @@ module.exports = new DataSource({
 
 ```javascript
 const { SeedingSource } = require('typeorm-seeding')
+const { AppSeeder, UserSeeder, PetSeeder } = require('./my-module')
 
 module.exports = new SeedingSource({
-  seeders: ['src/seeders/**/*{.ts,.js}'],
-  defaultSeeders: 'RootSeeder',
+  seeders: [UserSeeder, PetSeeder],
+  defaultSeeders: [AppSeeder],
 })
 ```
 
 > If no `--seedingSource` is provided, the default is `seeding.js`
-
-### .env
-
-```
-TYPEORM_SEEDING_SEEDERS=src/seeds/**/*{.ts,.js}
-TYPEORM_SEEDING_DEFAULT_SEEDERS=RootSeeder
-```
 
 ## Introduction
 
@@ -340,10 +335,10 @@ typeorm-seeding config
 
 Example result
 
-```json
+```
 {
-  "seeders": ["sample/seeders/**/*{.ts,.js}"],
-  "defaultSeeders": "RootSeeder"
+  seeders: [ [class User], [class Pet] ],
+  defaultSeeders: [ [class AppSeeder] ]
 }
 ```
 

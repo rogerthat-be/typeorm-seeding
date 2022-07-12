@@ -1,5 +1,9 @@
 import { DataSource } from 'typeorm'
+import { Pet } from '../__fixtures__/entities/Pet.entity'
+import { Pet2 } from '../__fixtures__/entities/Pet2.entity'
 import { Seeding } from '../../src/seeding'
+import { User } from '../__fixtures__/entities/User.entity'
+import { User2 } from '../__fixtures__/entities/User2.entity'
 import { fetchDataSource } from '../../src/configuration/fetch-data-source'
 
 describe(fetchDataSource, () => {
@@ -25,7 +29,7 @@ describe(fetchDataSource, () => {
       dataSourceOptions: {
         type: 'sqlite',
         database: ':memory:',
-        entities: ['abcdefg'],
+        entities: [User, Pet],
       },
     })
 
@@ -36,7 +40,7 @@ describe(fetchDataSource, () => {
       expect.objectContaining({
         type: 'sqlite',
         database: ':memory:',
-        entities: ['abcdefg'],
+        entities: [User, Pet],
       }),
     )
   })
@@ -54,7 +58,7 @@ describe(fetchDataSource, () => {
       expect.objectContaining({
         type: 'sqlite',
         database: ':memory:',
-        entities: ['test/__fixtures__/entities/**/*.entity.ts'],
+        entities: [User, User2, Pet, Pet2],
         synchronize: true,
       }),
     )

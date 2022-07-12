@@ -54,6 +54,6 @@ describe(Seeding.run, () => {
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 
-    expect(totalUsers).toBe(30)
+    expect(totalUsers).toBe(20)
   })
 })

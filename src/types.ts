@@ -7,8 +7,8 @@ import { SeedingSource } from './configuration/seeding-source'
 export type ClassConstructor<T> = new () => T
 
 export type SeedingSourceOptions = {
-  seeders?: string[]
-  defaultSeeders?: string
+  seeders: ClassConstructor<Seeder>[]
+  defaultSeeders: ClassConstructor<Seeder>[]
 }
 
 export type SeedingConfig = {
