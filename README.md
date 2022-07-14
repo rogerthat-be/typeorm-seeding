@@ -48,8 +48,7 @@ yarn add [-D] @concepta/typeorm-seeding
 
 ### Configuration
 
-To enable seeding from the CLI, you must provide a DataSource config, and a SeedingSource config.
-Environment variables will be respected and prioritized.
+To enable seeding from the CLI, you must provide a DataSource config and SeedingSource config.
 
 ### DataSource Config
 
@@ -64,21 +63,29 @@ module.exports = new DataSource({
 })
 ```
 
-> If no `--dataSource` is provided, the default is `ormconfig.js`
+### SeedingSource Options
 
-### SeedingSource Config
+```typescript
+type SeedingSourceOptions = {
+  // seeders
+  seeders: ClassConstructor<Seeder>[]
+  // default seeders
+  defaultSeeders: ClassConstructor<Seeder>[]
+  // data source instance, or options for creating a data source instance
+  dataSource: DataSource | DataSourceOptions
+}
+```
 
 ```javascript
-const { SeedingSource } = require('typeorm-seeding')
-const { AppSeeder, UserSeeder, PetSeeder } = require('./my-module')
+const { SeedingSource } = require('@concepta/typeorm-seeding')
+const { AppSeeder, UserSeeder, PetSeeder, dataSource } = require('./my-module')
 
 module.exports = new SeedingSource({
   seeders: [UserSeeder, PetSeeder],
   defaultSeeders: [AppSeeder],
+  dataSource, // overridden if provided by CLI arg
 })
 ```
-
-> If no `--seedingSource` is provided, the default is `seeding.js`
 
 ## Introduction
 
@@ -129,9 +136,11 @@ class UserFactory extends Factory<User> {
 ### Seeder
 
 ```typescript
+import { seedingSource } from './my-module'
+
 export class UserExampleSeeder extends Seeder {
   async run() {
-    await new UserFactory().create({
+    await new UserFactory({ seedingSource }).create({
       name: 'Jane',
     })
   }
@@ -180,19 +189,6 @@ protected entity(user: User): User {
 }
 ```
 
-### `finalize`
-
-This method can be overridden to customize how the entity is finalized.
-It is called at the end of the factory lifecycle, giving one last opportunity to set defaults or perform data validation, etc.
-
-```typescript
-protected async finalize(pet: Pet): Promise<void> {
-  if (!pet.owner) {
-    pet.owner = await new UserFactory().create()
-  }
-}
-```
-
 It is possible to create more than one factory related to a single entity, with different entity functions.
 
 ### `map`
@@ -204,9 +200,26 @@ map(mapFunction: (entity: Entity) => void): Factory
 ```
 
 ```typescript
-new UserFactory().map((user) => {
+import { seedingSource } from './my-module'
+
+new UserFactory({ seedingSource }).map((user) => {
   user.name = 'Jane'
 })
+```
+
+### `finalize`
+
+This method can be overridden to customize how the entity is finalized.
+It is called at the end of the entity generation lifecycle, giving one last opportunity to set defaults or perform data validation, etc.
+
+```typescript
+import { seedingSource } from './my-module'
+
+protected async finalize(pet: Pet): Promise<void> {
+  if (!pet.owner) {
+    pet.owner = await new UserFactory({ seedingSource }).create()
+  }
+}
 ```
 
 ### `make` & `makeMany`
@@ -221,12 +234,18 @@ makeMany(amount: number, overrideParams: Partial<Entity> = {}): Promise<Entity>
 ```
 
 ```typescript
-new UserFactory().make()
-new UserFactory().makeMany(10)
+import { seedingSource } from './my-module'
+
+// new factory
+const userFactory = new UserFactory({ seedingSource })
+
+// using defaults
+const user = userFactory.make()
+const users = userFactory.makeMany(10)
 
 // override the email
-new UserFactory().make({ email: 'other@mail.com' })
-new UserFactory().makeMany(10, { email: 'other@mail.com' })
+const user = userFactory.make({ email: 'other@mail.com' })
+const users = userFactory.makeMany(10, { email: 'other@mail.com' })
 ```
 
 ### `create` & `createMany`
@@ -242,16 +261,22 @@ createMany(amount: number, overrideParams: Partial<Entity> = {}, saveOptions?: S
 ```
 
 ```typescript
-new UserFactory().create()
-new UserFactory().createMany(10)
+import { seedingSource } from './my-module'
+
+// new factory
+const userFactory = new UserFactory({ seedingSource })
+
+// using default
+const user = await userFactory.create()
+const users = await userFactory.createMany(10)
 
 // override the email
-new UserFactory().create({ email: 'other@mail.com' })
-new UserFactory().createMany(10, { email: 'other@mail.com' })
+const user = await userFactory.create({ email: 'other@mail.com' })
+const users = await userFactory.createMany(10, { email: 'other@mail.com' })
 
 // using save options
-new UserFactory().create({ email: 'other@mail.com' }, { listeners: false })
-new UserFactory().createMany(10, { email: 'other@mail.com' }, { listeners: false })
+const user = await userFactory.create({ email: 'other@mail.com' }, { listeners: false })
+const users = await userFactory.createMany(10, { email: 'other@mail.com' }, { listeners: false })
 ```
 
 ### Execution order
@@ -260,8 +285,9 @@ As the order of execution can be complex, you can check it here:
 
 1. **Map function**: Map function alters the already existing entity.
 2. **Override params**: Alters the already existing entity.
-3. **Promises**: If some attribute is a promise, the promise will be resolved before the entity is created.
-4. **Factories**: If some attribute is a factory, the factory will be executed with `make`/`create` like the previous one.
+3. **finalize method**: Last chance to set missing attributes or do data validation.
+4. **Promises**: If some attribute is a promise, the promise will be resolved before the entity is created.
+5. **Factories**: If some attribute is a factory, the factory will be executed with `make`/`create` like the previous one.
 
 ### Faker
 
@@ -294,7 +320,7 @@ It is an abstract class with one method to be implemented, and a helper function
 
 ```typescript
 class UserSeeder extends Seeder {
-  async run(dataSource: DataSource) {
+  async run() {
     // ...
   }
 }
@@ -305,13 +331,13 @@ class UserSeeder extends Seeder {
 This function is the one that needs to be defined when extending the class. Could use `call` to run some other seeders.
 
 ```typescript
-run(dataSource: DataSource): Promise<void>
+run(): Promise<void>
 ```
 
 ```typescript
-async run(dataSource: DataSource) {
-    await new UserFactory().createMany(10)
-    await this.call(dataSource, [PetSeeder])
+async run() {
+    await new UserFactory({ seedingSource: this.seedingSource }).createMany(10)
+    await this.call([PetSeeder])
 }
 ```
 
@@ -333,8 +359,8 @@ Add the following scripts to your `package.json` file to configure them.
 
 ```json
 "scripts": {
-  "seed:config": "typeorm-seeding config",
-  "seed:run": "typeorm-seeding seed",
+  "seed:config": "typeorm-seeding config -r ./dist -c seeding-source.js",
+  "seed:run": "typeorm-seeding seed -r ./dist -c seeding-source.js",
 }
 ```
 
@@ -360,7 +386,7 @@ Example result
 | Option                    | Default         | Description                                      |
 | ------------------------- | --------------- | ------------------------------------------------ |
 | `--root` or `-r`          | `process.cwd()` | Path to the project root                         |
-| `--seedingSource` or `-c` | `seeding.js`    | Relative path to the seeding config from `root`. |
+| `--seedingSource` or `-c` |                 | Relative path to the seeding config from `root`. |
 
 ### `seed`
 
@@ -375,96 +401,64 @@ typeorm-seeding seed
 | Option                    | Default         | Description                                              |
 | ------------------------- | --------------- | -------------------------------------------------------- |
 | `--root` or `-r`          | `process.cwd()` | Path to the project root                                 |
-| `--dataSource` or `-d`    | `ormconfig.js`  | Relative path to TypeORM data source config from `root`. |
-| `--seedingSource` or `-c` | `seeding.js`    | Relative path to the seeding config from `root`.         |
+| `--seedingSource` or `-c` |                 | Relative path to the seeding config from `root`.         |
+| `--dataSource` or `-d`    |                 | Relative path to TypeORM data source config from `root`. |
 | `--seed` or `-s`          |                 | Run a specific seeder class to run individually.         |
 
 ## Testing Features
 
-To make seeding your unit tests a simple task, the `Seeding` class is provided with a few static methods.
+To make seeding your unit tests a simple task, the `Runner` class is provided on `SeedingSource`.
 
-The minimum requirements to initialize seeding is to call the `Seeding.configure` method.
-This enables manual execution of seeders and factories.
-
-To configure and run one or more seeders with one command, use the `Seeding.run` method.
-
-### Configuration Options
-
-Configurations properties will be searched in the order seen below.
-
-> Once a data source property is found, **the remaining properties will be ignored**.
-
-```typescript
-type SeedingConfig = {
-  // path to project root (for file configs)
-  root?: string
-  // explicit data source instance
-  dataSource?: DataSource
-  // data source options for creating a data source instance
-  dataSourceOptions?: DataSourceOptions
-  // path to data source config file, relative to `root`
-  dataSourceFile?: string
-  // explicit seeding source instance
-  seedingSource?: SeedingSource
-  // seeding source options for creating a seeding source instance
-  seedingSourceOptions?: SeedingSourceOptions
-  // path to seeding source config file, relative to `root`
-  seedingSourceFile?: string
-}
-```
-
-### Runtime Configuration
-
-#### `Seeding.configure`
-
-Configure seeding. This will MERGE on top of any existing configuration.
-
-```typescript
-Seeding.configure(
-  configOverrides?: Partial<SeedingConfig>,
-): Promise<void>
-```
-
-#### `Seeding.reconfigure`
-
-Re-configure seeding. This will REPLACE the existing configuration.
-
-```typescript
-Seeding.reconfigure(
-  configuration?: Partial<SeedingConfig>,
-): Promise<void>
-```
+To run one or more seeders with one command, use the `SeedingSource.runner` instance.
 
 ### Seeders
 
-#### `Seeding.run`
+#### `SeedingSource.runner.one`
 
-Execute one or more seeders. You are NOT required to call `Seeding.configure` first.
-
-If `configOverrides` are passed, they will be merged on top of any existing configuration.
+Execute one seeder.
 
 ```typescript
-Seeding.run(
-  entrySeeders: SeederTypeOrClass[],
-  configOverrides?: SeedingConfig,
+SeedingSource.runner.one(
+  seeder: SeederInstanceOrClass,
 ): Promise<void>
+```
+
+#### `SeedingSource.runner.many`
+
+Execute many seeders.
+
+```typescript
+SeedingSource.runner.many(
+  seeders: SeederInstanceOrClass[],
+): Promise<void>
+```
+
+#### `SeedingSource.runner.defaults`
+
+Execute all default seeders.
+
+```typescript
+SeedingSource.runner.defaults(): Promise<void>
 ```
 
 ### Factories
 
-You only need to configure seeding to be able to use factories on their own.
-
-All of the configuration options are available, but in the example we create
-and explicity pass the data source we want to use.
+Factories can be used stand alone if you explicitly pass a SeedingSource instance option to the constructor.
 
 ```typescript
-const dataSource = new DataSource({
-  type: 'sqlite',
-  database: ':memory:',
-})
+import { seedingSource } from './my-module'
 
-Seeding.configure({ dataSource })
-
-const factory = new UserFactory()
+const factory = new UserFactory({ seedingSource })
 const user = await factory.create()
+```
+
+### Seeders
+
+Seeders can be used stand alone if you explicitly pass a SeedingSource instance option to the constructor.
+
+```typescript
+import { seedingSource } from './my-module'
+
+const userSeeder = new UserSeeder({ seedingSource })
+await userSeeder.run()
 ```

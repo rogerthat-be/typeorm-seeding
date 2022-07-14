@@ -1,5 +1,4 @@
 import { SeedCommand } from '../../src/commands/seed.command'
-import { Seeding } from '../../src/seeding'
 import yargs from 'yargs'
 
 describe(SeedCommand, () => {
@@ -8,7 +7,6 @@ describe(SeedCommand, () => {
 
   beforeEach(async () => {
     exitFn.mockClear()
-    Seeding.reconfigure({})
     command = new SeedCommand()
   })
 

@@ -1,29 +1,26 @@
-import type { DataSource } from 'typeorm'
 import { Factory } from '../src/factory'
 import { Pet } from './__fixtures__/entities/Pet.entity'
 import { PetFactory } from './__fixtures__/factories/pet.factory'
-import { Seeding } from '../src/seeding'
+import { SeedingSource } from '../src'
 import { User } from './__fixtures__/entities/User.entity'
 import { UserFactory } from './__fixtures__/factories/user.factory'
-import { fetchDataSource } from '../src/configuration/fetch-data-source'
+import { importSeedingSource } from '../src/configuration/import-seeding-source'
 
 describe(Factory, () => {
-  let dataSource: DataSource
-  const userFactory = new UserFactory()
-  const petFactory = new PetFactory()
+  let seedingSource: SeedingSource
+  let userFactory: UserFactory
+  let petFactory: PetFactory
 
   beforeEach(async () => {
-    Seeding.reconfigure({
-      root: __dirname,
-      dataSourceFile: '__fixtures__/ormconfig.js',
-      seedingSourceFile: '__fixtures__/ormconfig.js',
-    })
-    dataSource = await fetchDataSource()
+    seedingSource = await importSeedingSource('__fixtures__/seeding.js', __dirname)
+    await seedingSource.dataSource.initialize()
+    userFactory = new UserFactory({ seedingSource })
+    petFactory = new PetFactory({ seedingSource })
   })
 
   afterEach(async () => {
-    await dataSource.dropDatabase()
-    await dataSource.destroy()
+    await seedingSource.dataSource.dropDatabase()
+    await seedingSource.dataSource.destroy()
   })
 
   describe(Factory.prototype.make, () => {

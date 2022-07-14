@@ -1,17 +1,11 @@
 import { PetSeeder } from '../__fixtures__/seeders/pet.seeder'
-import { Seeding } from '../../src/seeding'
-import { SeedingSource } from '../../src/configuration/seeding-source'
+import { SeedingSource } from '../../src/seeding-source'
 import { UserSeeder } from '../__fixtures__/seeders/user.seeder'
-import { fetchSeedingSource } from '../../src/configuration/fetch-seeding-source'
+import { importSeedingSource } from '../../src/configuration/import-seeding-source'
 
-describe(fetchSeedingSource, () => {
+describe(importSeedingSource, () => {
   test('Should get seed command configuration', async () => {
-    Seeding.reconfigure({
-      root: __dirname,
-      seedingSourceFile: '../__fixtures__/seeding.js',
-    })
-
-    const options: SeedingSource = await fetchSeedingSource()
+    const options: SeedingSource = await importSeedingSource('../__fixtures__/seeding.js', __dirname)
 
     const seeders = options.seeders
     expect(seeders[0]).toBe(UserSeeder)

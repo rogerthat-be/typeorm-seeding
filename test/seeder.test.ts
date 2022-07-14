@@ -4,24 +4,21 @@ import { Pet } from './__fixtures__/entities/Pet.entity'
 import { Pet2 } from './__fixtures__/entities/Pet2.entity'
 import { PetSeeder } from './__fixtures__/seeders/pet.seeder'
 import { Seeder } from '../src/seeder'
-import { Seeding } from '../src/seeding'
+import { SeedingSource } from '../src/seeding-source'
 import { User } from './__fixtures__/entities/User.entity'
 import { User2 } from './__fixtures__/entities/User2.entity'
 import { UserFactory } from './__fixtures__/factories/user.factory'
 import { UserSeeder } from './__fixtures__/seeders/user.seeder'
-import { fetchDataSource } from '../src/configuration/fetch-data-source'
+import { importSeedingSource } from '../src/configuration/import-seeding-source'
 
 describe(Seeder, () => {
   let dataSource: DataSource
+  let seedingSource: SeedingSource
 
   beforeEach(async () => {
-    Seeding.reconfigure({
-      root: __dirname,
-      dataSourceFile: '__fixtures__/ormconfig.js',
-      seedingSourceFile: '__fixtures__/ormconfig.js',
-    })
-
-    dataSource = await fetchDataSource()
+    seedingSource = await importSeedingSource('__fixtures__/seeding.js', __dirname)
+    dataSource = seedingSource.dataSource
+    await dataSource.initialize()
   })
 
   afterEach(async () => {
@@ -31,7 +28,7 @@ describe(Seeder, () => {
 
   describe(Seeder.prototype.run, () => {
     test('Should seed users', async () => {
-      await new UserSeeder().run(dataSource)
+      await new UserSeeder({ seedingSource }).run()
 
       const [totalUsers, totalPets] = await Promise.all([
         dataSource.createEntityManager().count(User),
@@ -58,6 +55,7 @@ describe(Seeder, () => {
       }
 
       await new UserSeeder({
+        seedingSource,
         factories: { user: new UserFactory({ entity: User2 }) },
         seeders: [
           new PetSeeder({
@@ -66,7 +64,7 @@ describe(Seeder, () => {
             },
           }),
         ],
-      }).run(dataSource)
+      }).run()
 
       const [totalUsers, totalPets] = await Promise.all([
         dataSource.createEntityManager().count(User2),

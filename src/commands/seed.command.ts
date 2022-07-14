@@ -3,10 +3,10 @@ import ora, { Ora } from 'ora'
 
 import { ClassConstructor } from '../types'
 import { Seeder } from '../seeder'
-import { Seeding } from '../seeding'
-import { SeedingSource } from '../configuration/seeding-source'
-import { fetchSeedingSource } from '../configuration/fetch-seeding-source'
+import { SeedingSource } from '../seeding-source'
 import { gray } from 'chalk'
+import { importDataSource } from '../configuration/import-data-source'
+import { importSeedingSource } from '../configuration/import-seeding-source'
 
 interface SeedCommandArguments extends Arguments {
   root?: string
@@ -30,20 +30,20 @@ export class SeedCommand implements CommandModule {
         describe: 'Path to project root',
         default: process.cwd(),
       })
-      .option('d', {
-        alias: 'dataSource',
-        type: 'string',
-        describe: 'Path to the data source config file.',
-      })
       .option('c', {
         alias: 'seedingSource',
         type: 'string',
-        describe: 'Path to the seeder config file.',
+        describe: 'Path to the SeedingSource definition file.',
+      })
+      .option('d', {
+        alias: 'dataSource',
+        type: 'string',
+        describe: 'Path to the DataSource definition file. Defines or overrides DataSource.',
       })
       .option('s', {
         alias: 'seed',
         type: 'string',
-        describe: 'Specific seed class to run.',
+        describe: 'Comma separated list of specific Seeder class(es) to run.',
       })
   }
 
@@ -53,21 +53,50 @@ export class SeedCommand implements CommandModule {
   async handler(args: SeedCommandArguments) {
     const spinner = ora({ text: 'Loading ormconfig', isSilent: process.env.NODE_ENV === 'test' }).start()
 
-    // Get seeding source
-    let seedingSource!: SeedingSource
+    // determine root path
     const rootPath = args.root && args.root[0] === '.' ? process.cwd() + '/' + args.root : args.root
 
-    try {
-      Seeding.configure({
-        root: rootPath,
-        dataSourceFile: args.dataSource,
-        seedingSourceFile: args.seedingSource,
-      })
-      seedingSource = await fetchSeedingSource()
-      spinner.succeed('Seeding Config loaded')
-    } catch (error) {
-      panic(spinner, error, `Could not load the config file at ${rootPath}!`)
-      return
+    // get seeding source
+    let seedingSource: SeedingSource
+
+    // data source was requested?
+    if (args.seedingSource) {
+      try {
+        seedingSource = await importSeedingSource(args.seedingSource, rootPath)
+        spinner.succeed(`Seeding Config ${args.seedingSource} loaded`)
+      } catch (error) {
+        return panic(spinner, error, `Could not load the seeding source config file at ${args.seedingSource}!`)
+      }
+    } else {
+      return panic(
+        spinner,
+        new Error('Missing seedingSource arg'),
+        `You must define a SeedingSource by providing a --seedingSource arg (see help)`,
+      )
+    }
+
+    // data source was requested?
+    if (args.dataSource) {
+      // is this an override?
+      if (seedingSource.dataSource) {
+        spinner.info(`Data Source Config will be overridden with ${args.dataSource}`)
+      }
+      try {
+        const dataSource = await importDataSource(args.dataSource, rootPath)
+        seedingSource.dataSource = dataSource
+        spinner.succeed(`Data Source Config ${args.dataSource} loaded`)
+      } catch (error) {
+        return panic(spinner, error, `Could not load the data source config file at ${args.dataSource}!`)
+      }
+    }
+
+    // check if we have a data source
+    if (!seedingSource.dataSource) {
+      return panic(
+        spinner,
+        new Error('SeedingSource.dataSource is not defined'),
+        `You must provide a DataSource in the SeedingSource, or provide a --dataSource arg (see help)`,
+      )
     }
 
     // Show seeder in console
@@ -92,11 +121,10 @@ export class SeedCommand implements CommandModule {
 
     // run seeders
     try {
-      await Seeding.run(seeders)
+      await seedingSource.runner.many(seeders)
       spinner.succeed(`Seeders ${seedersNames} executed`)
     } catch (error) {
-      panic(spinner, error, `Failed to run the ${seedersNames} seeders!`)
-      return
+      return panic(spinner, error, `Failed to run the ${seedersNames} seeders!`)
     }
 
     console.log('👍 ', gray.underline(`Finished Seeding`))

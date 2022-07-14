@@ -1,13 +1,10 @@
-import { DataSource, ObjectLiteral } from 'typeorm'
-import { FactoriesConfiguration, SeederInstanceOrClass } from './types'
+import { FactoriesConfiguration, SeederInstanceOrClass, SeederOptions } from './types'
 
 import { Factory } from './factory'
+import { ObjectLiteral } from 'typeorm'
+import { SeedingSource } from './seeding-source'
 import { resolveFactory } from './utils/resolve-factory.util'
-
-export interface SeederOptions<Entities> {
-  factories?: FactoriesConfiguration<Entities>
-  seeders?: SeederInstanceOrClass[]
-}
+import { resolveSeeders } from './utils/resolve-seeders.util'
 
 /**
  * Seeder
@@ -23,31 +20,33 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    *
    * @param overrides option overrides
    */
-  constructor(private overrides: SeederOptions<Entities> = {}) {}
+  constructor(private overrides: Partial<SeederOptions<Entities>> = {}) {}
+
+  get seedingSource() {
+    if (this.overrides.seedingSource instanceof SeedingSource) {
+      return this.overrides.seedingSource
+    } else {
+      throw new Error(`SeedingSource options was not set for Seeder ${Object.getPrototypeOf(this).constructor.name}`)
+    }
+  }
+
+  set seedingSource(seedingSource: SeedingSource) {
+    this.overrides.seedingSource = seedingSource
+  }
 
   /**
    * Run the seeder logic.
-   *
-   * @param dataSource TypeORM data source
    */
-  abstract run(dataSource: DataSource): Promise<void>
+  abstract run(): Promise<void>
 
   /**
    * Helper method for running sub-seeders.
    *
-   * @param dataSource TypeORM data source
    * @param seeders Array of seeders to run
    */
-  protected async call(dataSource: DataSource, seeders: SeederInstanceOrClass[] = []): Promise<void> {
-    const allSeeders = this.seeders(seeders)
-
-    for (const seeder of allSeeders) {
-      if (seeder instanceof Seeder) {
-        await seeder.run(dataSource)
-      } else {
-        await new seeder().run(dataSource)
-      }
-    }
+  protected async call(seeders: SeederInstanceOrClass[] = []): Promise<void> {
+    const seedersToRun = this.seeders(seeders)
+    await this.seedingSource.runner.many(seedersToRun)
   }
 
   /**
@@ -56,7 +55,7 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    * @param key key of factory to return
    */
   public factory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
-    return resolveFactory(key, this.options.factories, this.overrides.factories)
+    return resolveFactory(this.seedingSource, key, this.options.factories, this.overrides.factories)
   }
 
   /**
@@ -70,13 +69,15 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    * 2. Seeders passed as overrides
    * 3. Seeders set as class options
    */
-  protected seeders(seeders: SeederInstanceOrClass[] = []): SeederInstanceOrClass[] {
-    return seeders.length
+  protected seeders(seeders: SeederInstanceOrClass[] = []): Seeder[] {
+    const whichSeeders = seeders.length
       ? seeders
       : this.overrides.seeders?.length
       ? this.overrides.seeders
       : this.options.seeders?.length
       ? this.options.seeders
       : []
+
+    return resolveSeeders(this.seedingSource, whichSeeders)
   }
 }

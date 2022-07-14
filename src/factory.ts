@@ -1,14 +1,9 @@
-import { ClassConstructor, FactoriesConfiguration } from './types'
+import { ClassConstructor, FactoriesConfiguration, FactoryOptions } from './types'
 import { ObjectLiteral, SaveOptions } from 'typeorm'
 
-import { fetchDataSource } from './configuration/fetch-data-source'
+import { SeedingSource } from './seeding-source'
 import { isPromiseLike } from './utils/is-promise-like.util'
 import { resolveFactory } from './utils/resolve-factory.util'
-
-export interface FactoryOptions<T, Entities> {
-  entity?: ClassConstructor<T>
-  subFactories?: FactoriesConfiguration<Entities>
-}
 
 /**
  * Factory
@@ -18,6 +13,18 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
    * Options
    */
   protected options: FactoryOptions<Entity, Entities> = {}
+
+  get seedingSource() {
+    if (this.overrides.seedingSource instanceof SeedingSource) {
+      return this.overrides.seedingSource
+    } else {
+      throw new Error(`SeedingSource options was not set for Factory ${Object.getPrototypeOf(this).name}`)
+    }
+  }
+
+  set seedingSource(seedingSource: SeedingSource) {
+    this.overrides.seedingSource = seedingSource
+  }
 
   /**
    * Mapping function.
@@ -31,7 +38,7 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
    *
    * @param overrides option overrides
    */
-  constructor(protected overrides: Partial<FactoryOptions<Entity, Entities>> = {}) {}
+  constructor(protected overrides: FactoryOptions<Entity, Entities> = {}) {}
 
   /**
    * Return an instance of entity.
@@ -88,7 +95,15 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
   async create(overrideParams: Partial<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity> {
     const entity = await this.makeEntity(overrideParams, true)
 
-    const dataSource = await fetchDataSource()
+    // get data source from seeding source
+    const dataSource = this.seedingSource.dataSource
+
+    // has been initialized yet?
+    if (!dataSource.isInitialized) {
+      // no, initialize it
+      await dataSource.initialize()
+    }
+
     return dataSource.createEntityManager().save<Entity>(entity, saveOptions)
   }
 
@@ -121,6 +136,8 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
       entity[key] = overrideParams[key] as typeof actualValue
     }
 
+    await this.finalize(entity)
+
     return this.resolveEntity(entity, isSeeding)
   }
 
@@ -141,8 +158,6 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
       }
     }
 
-    await this.finalize(entity)
-
     return entity
   }
 
@@ -152,6 +167,6 @@ export abstract class Factory<Entity, Entities extends ObjectLiteral = ObjectLit
    * @param key key of factory to return
    */
   public subFactory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
-    return resolveFactory(key, this.options.subFactories, this.overrides.subFactories)
+    return resolveFactory(this.seedingSource, key, this.options.subFactories, this.overrides.subFactories)
   }
 }

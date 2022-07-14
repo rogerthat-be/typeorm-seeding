@@ -1,10 +1,35 @@
-import { ClassConstructor, SeedingSourceOptions } from '../types'
+import { ClassConstructor, SeedingSourceOptions } from './types'
 
-import { Seeder } from '../seeder'
-import { SeederImportException } from '../exceptions/seeder-import.exception'
+import { DataSource } from 'typeorm'
+import { Runner } from './runner'
+import { Seeder } from './seeder'
+import { SeederImportException } from './exceptions/seeder-import.exception'
+import { resolveDataSource } from './utils/resolve-data-source'
 
 export class SeedingSource {
+  /**
+   * This seeding source's config manager
+   */
+  readonly runner: Runner = new Runner(this)
+
+  private _dataSource: DataSource | undefined
+
+  /**
+   * Ctor
+   */
   constructor(private options: SeedingSourceOptions) {}
+
+  get dataSource(): DataSource {
+    if (!this._dataSource) {
+      this._dataSource = resolveDataSource(this.options.dataSource)
+    }
+
+    return this._dataSource
+  }
+
+  set dataSource(dataSource: DataSource) {
+    this._dataSource = dataSource
+  }
 
   get seeders(): ClassConstructor<Seeder>[] {
     return this.options.seeders
@@ -12,6 +37,16 @@ export class SeedingSource {
 
   get defaultSeeders(): ClassConstructor<Seeder>[] {
     return this.options.defaultSeeders
+  }
+
+  configure(options: Partial<SeedingSourceOptions>) {
+    this.options = { ...this.options, ...options }
+    this._dataSource = undefined
+  }
+
+  reconfigure(options: SeedingSourceOptions) {
+    this.options = options
+    this._dataSource = undefined
   }
 
   seedersFromString(seederNameString = ''): ClassConstructor<Seeder>[] {

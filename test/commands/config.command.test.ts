@@ -1,5 +1,4 @@
 import { ConfigCommand } from '../../src/commands/config.command'
-import { Seeding } from '../../src/seeding'
 import yargs from 'yargs'
 
 describe(ConfigCommand, () => {
@@ -11,7 +10,6 @@ describe(ConfigCommand, () => {
   })
 
   beforeEach(() => {
-    Seeding.reconfigure({})
     command = new ConfigCommand()
   })
 

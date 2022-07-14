@@ -1,21 +1,20 @@
 import type { DataSource } from 'typeorm'
 import { Pet } from './__fixtures__/entities/Pet.entity'
 import { PetSeeder } from './__fixtures__/seeders/pet.seeder'
-import { Seeding } from '../src/seeding'
+import { Runner } from '../src/runner'
+import { SeedingSource } from '../src'
 import { User } from './__fixtures__/entities/User.entity'
 import { UserSeeder } from './__fixtures__/seeders/user.seeder'
-import { fetchDataSource } from '../src/configuration/fetch-data-source'
+import { importSeedingSource } from '../src/configuration/import-seeding-source'
 
-describe(Seeding.run, () => {
+describe(Runner, () => {
   let dataSource: DataSource
+  let seedingSource: SeedingSource
 
   beforeEach(async () => {
-    Seeding.reconfigure({
-      root: __dirname,
-      dataSourceFile: '__fixtures__/ormconfig.js',
-      seedingSourceFile: '__fixtures__/seeding.js',
-    })
-    dataSource = await fetchDataSource()
+    seedingSource = await importSeedingSource('__fixtures__/seeding.js', __dirname)
+    dataSource = seedingSource.dataSource
+    await dataSource.initialize()
   })
 
   afterEach(async () => {
@@ -24,7 +23,7 @@ describe(Seeding.run, () => {
   })
 
   test(`Should seed with only one seeder provided`, async () => {
-    await Seeding.run([UserSeeder])
+    await seedingSource.runner.one(UserSeeder)
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 
@@ -32,7 +31,7 @@ describe(Seeding.run, () => {
   })
 
   test(`Should seed with multiple seeders provided`, async () => {
-    await Seeding.run([UserSeeder, PetSeeder])
+    await seedingSource.runner.many([UserSeeder, PetSeeder])
 
     const [totalUsers, totalPets] = await Promise.all([
       dataSource.createEntityManager().count(User),
@@ -41,19 +40,5 @@ describe(Seeding.run, () => {
 
     expect(totalUsers).toBe(30)
     expect(totalPets).toBe(20)
-  })
-
-  test(`Should seed with custom seeder source file`, async () => {
-    Seeding.reconfigure({})
-
-    await Seeding.run({
-      root: __dirname,
-      dataSourceFile: '__fixtures__/ormconfig.js',
-      seedingSourceFile: '__fixtures__/seeding.js',
-    })
-
-    const totalUsers = await dataSource.createEntityManager().count(User)
-
-    expect(totalUsers).toBe(20)
   })
 })

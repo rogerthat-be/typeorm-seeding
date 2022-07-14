@@ -1,6 +1,7 @@
 import { FactoriesConfiguration, FactoryInstanceOrClass } from '../types'
 
 import { Factory } from '../factory'
+import { SeedingSource } from '../seeding-source'
 
 /**
  * Resolve Factory class or type and return Factory instance for given configuration key.
@@ -10,6 +11,7 @@ import { Factory } from '../factory'
  * @param factoryOverrides factory overrides config
  */
 export function resolveFactory<Entities, K extends keyof FactoriesConfiguration<Entities>>(
+  seedingSource: SeedingSource,
   key: K,
   factories: FactoriesConfiguration<Entities> = {},
   factoryOverrides: FactoriesConfiguration<Entities> = {},
@@ -20,13 +22,13 @@ export function resolveFactory<Entities, K extends keyof FactoriesConfiguration<
   // try to get the factory for given key
   const factory: FactoryInstanceOrClass<Entities[K]> | undefined = mergedFactories[key] ?? undefined
 
-  // is already an instance?
-  if (factory instanceof Factory) {
-    // yes, return it
-    return factory
-  } else if (factory !== undefined) {
-    // it's a class, return new instance
-    return new factory()
+  if (factory !== undefined) {
+    // the factory we will return
+    const factoryToReturn = factory instanceof Factory ? factory : new factory()
+    // set the seeding source
+    factoryToReturn.seedingSource = seedingSource
+    // return it
+    return factoryToReturn
   }
 
   // factory for given key was not found
