@@ -12,6 +12,9 @@ describe(importSeedingSource, () => {
     expect(seeders[1]).toBe(PetSeeder)
 
     const defaultSeeders = options.defaultSeeders
-    expect(defaultSeeders[0]).toBe(UserSeeder)
+    expect(defaultSeeders).toBeDefined()
+    if (defaultSeeders) {
+      expect(defaultSeeders[0]).toBe(UserSeeder)
+    }
   })
 })

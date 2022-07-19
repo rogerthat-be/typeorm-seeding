@@ -26,31 +26,119 @@
 
 <br />
 
-## Additional contents
+## Table of Contents
 
-- [Factory](#factory-1)
-- [Seeder](#seeder-1)
-- [CLI](#cli-configuration)
-- [Testing features](#testing-features)
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Factory](#factory-class)
+- [Seeder](#seeder-class)
+- [Command Line Tool](#cli)
+- [Unit Testing API](#unit-testing)
+
+## Introduction
+
+Creating sample data for your TypeORM project entities is exhausting 🥵
+
+The TypeORM seeding module's goal is to make this task fun and rewarding.
+
+How does it work? Just create your entity factories and/or seeders, and run the CLI command!
+
+#### Entities
+
+```typescript
+@Entity()
+class User {
+  @PrimaryGeneratedColumn('uuid')
+  id: string
+
+  @Column()
+  name: string
+
+  @Column()
+  lastname: string
+}
+```
+
+#### Factories
+
+```typescript
+class UserFactory extends Factory<User> {
+  protected async entity(): Promise<User> {
+    const user = new User()
+    user.name = 'John'
+    user.lastname = 'Doe'
+    return user
+  }
+}
+```
+
+#### Seeders
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    await this.factory(UserFactory).create()
+  }
+}
+```
+
+#### Run It!
+
+```
+typeorm-seeding seed -c seeding-source.js
+```
 
 ## Installation
 
-Before using this TypeORM extension please read the [TypeORM Getting Started](https://typeorm.io/#/) documentation. This explains how to setup a TypeORM project.
+This module requires TypeORM 0.3.0 and higher.
 
-After that install the extension with `npm` or `yarn`. Add development flag if you are not using seeders nor factories in production code.
+Please read the [TypeORM Getting Started](https://typeorm.io/#/) documentation. This explains how to setup a TypeORM project.
 
-```bash
-npm i [-D] @concepta/typeorm-seeding
-yarn add [-D] @concepta/typeorm-seeding
+Install the package with `npm` or `yarn`. Add the development flag if you are not using seeders and/or factories in production code.
 
-> This module requires TypeORM 0.3.0 and higher.
+> The [Faker](https://www.npmjs.com/package/@faker-js/faker) package was previously a dependency of the project,
+> but now it is optional. If you want to use faker, you will need to install and import it.
+
+```
+npm i [-D] @concepta/typeorm-seeding @faker-js/faker
+yarn add [-D] @concepta/typeorm-seeding @faker-js/faker
 ```
 
-### Configuration
+## Configuration
 
-To enable seeding from the CLI, you must provide a DataSource config and SeedingSource config.
+The heart of the module is the `SeedingSource` class.
 
-### DataSource Config
+You must create an instance and provide it to the CLI via configuration file,
+or pass it directly to your `Seeder` and `Factory` constructors.
+
+### Seeding Source Class
+
+```typescript
+class SeedingSource {
+  constructor(options: SeedingSourceOptions)
+}
+```
+
+### Seeding Source Options
+
+The `SeedingSource` instance is configured with a [TypeORM DataSource](https://typeorm.io/data-source) instance (or options to create an instance),
+a list of `Seeder` classes, and optionally a list of default `Seeder` classes.
+
+```typescript
+interface SeedingSourceOptions {
+  // data source instance, or options for creating a data source instance
+  dataSource: DataSource | DataSourceOptions
+  // all of your seeder classes, REQUIRED for CLI
+  seeders?: ClassConstructor<Seeder>[]
+  // default seeders (if provided, only these will be run by the CLI)
+  defaultSeeders?: ClassConstructor<Seeder>[]
+}
+```
+
+### Data Source Instance
+
+The `DataSource` config can be defined directly in the seeding source module, or imported from a different module.
+Since most developers have this in it's own file, our example will follow this standard.
 
 ```javascript
 const { DataSource } = require('typeorm')
@@ -63,272 +151,312 @@ module.exports = new DataSource({
 })
 ```
 
-### SeedingSource Options
+### Seeding Source Instance
 
-```typescript
-type SeedingSourceOptions = {
-  // seeders
-  seeders: ClassConstructor<Seeder>[]
-  // default seeders
-  defaultSeeders: ClassConstructor<Seeder>[]
-  // data source instance, or options for creating a data source instance
-  dataSource: DataSource | DataSourceOptions
-}
-```
+We import the above `DataSource` and our seeders from `my-module`.
 
 ```javascript
 const { SeedingSource } = require('@concepta/typeorm-seeding')
 const { AppSeeder, UserSeeder, PetSeeder, dataSource } = require('./my-module')
 
 module.exports = new SeedingSource({
-  seeders: [UserSeeder, PetSeeder],
-  defaultSeeders: [AppSeeder],
   dataSource, // overridden if provided by CLI arg
+  seeders: [UserSeeder, PetSeeder],
 })
 ```
 
-## Introduction
-
-Isn't it exhausting to create some sample data for your database? Well this time is over!
-
-How does it work? Just create a entity factory and/or seed script.
-
-### Entity
-
-```typescript
-@Entity()
-class User {
-  @PrimaryGeneratedColumn('uuid') id: string
-
-  @Column() name: string
-
-  @Column() lastname: string
-}
-```
-
-### Factory
-
-```typescript
-// basic
-class UserFactory extends Factory<User> {
-  protected entity(): User {
-    const user = new User()
-    user.name = 'John'
-    user.lastname = 'Doe'
-    return user
-  }
-}
-
-// advanced (see overrides API)
-class UserFactory extends Factory<User> {
-  protected options = {
-    entity: User,
-  }
-
-  protected entity(user: User): User {
-    user.name = 'John'
-    user.lastname = 'Doe'
-    return user
-  }
-}
-```
-
-### Seeder
-
-```typescript
-import { seedingSource } from './my-module'
-
-export class UserExampleSeeder extends Seeder {
-  async run() {
-    await new UserFactory({ seedingSource }).create({
-      name: 'Jane',
-    })
-  }
-}
-```
-
-## Factory
+## Factory Class
 
 Factory is how we provide a way to simplify entities creation, implementing a
 [factory creational pattern](https://refactoring.guru/design-patterns/factory-method).
-It is defined as an abstract class with generic typing, so you have to extend over it.
+It is defined as an abstract class with generic typing, so you have to extend it.
+
+> Note: It is possible to create more than one `Factory` related to the same entity class.
 
 ```typescript
-// basic
 class UserFactory extends Factory<User> {
-  protected entity(): User {
+  // required
+  protected async entity(): Promise<User> {
     const user = new User()
-    // ...
+    user.name = 'John'
+    user.lastname = 'Doe'
     return user
   }
-}
 
-// advanced (see overrides API)
-class UserFactory extends Factory<User> {
-  protected options = {
-    entity: User,
-  }
-
-  protected entity(user: User): User {
-    // ...
-    return user
+  // optional
+  protected async finalize(user: User): Promise<void> {
+    // last chance to mutate the entity at end of factory lifecycle
   }
 }
 ```
 
 ### `entity`
 
-This method can be overridden to customize how the entity is generated.
-It is called to instantiate the entity and the result will be used on the rest of factory lifecycle.
+This method must be overridden to define how the entity is generated.
+It is called to instantiate the entity and the result will be used for the rest of factory lifecycle.
+
+#### Basic Implementation
+
+In the most basic implementation, the factory is responsible for creating the new entity instance.
 
 ```typescript
-protected entity(user: User): User {
+class UserFactory extends Factory<User> {
+  protected async entity(): Promise<User> {
+    const user = new User()
     user.name = 'John'
     user.lastname = 'Doe'
     return user
+  }
 }
 ```
 
-It is possible to create more than one factory related to a single entity, with different entity functions.
+#### Advanced Implementation
+
+If you configure the entity option, then the method receives a new instance of that entity class.
+
+> This factory is now eligible for entity overrides.
+
+```typescript
+class UserFactory extends Factory<User> {
+  protected options = {
+    entity: User,
+  }
+
+  protected async entity(user: User): Promise<User> {
+    user.name = 'John'
+    user.lastname = 'Doe'
+    return user
+  }
+}
+```
+
+### `finalize`
+
+This method can be overridden to customize how the entity is finalized.
+It is called at the end of the entity generation lifecycle,
+giving one last opportunity to set defaults or perform data validation, etc.
+
+```typescript
+protected async finalize(pet: Pet): Promise<void> {
+  if (!pet.owner) {
+    pet.owner = await this.factory(UserFactory).create()
+  }
+}
+```
+
+## Factory Usage
+
+### `make`
+
+The `make()` method executes the factory lifecycle and returns a new instance of the given entity.
+
+The instance is filled with the generated values from the factory lifecycle, **but not saved in the database**.
+
+> Important: You must pass the entity to the factory's `save()` method to persist the entity if desired.
+
+```typescript
+make(overrideParams: Partial<Entity> = {}): Promise<Entity>
+```
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    // get a user factory
+    const userFactory = this.factory(UserFactory)
+    // using defaults
+    const user = userFactory.make()
+    // with email override
+    const user2 = userFactory.make({ email: 'other@mail.com' })
+    // persist to database (optional)
+    await userFactory.save([user, user2])
+  }
+}
+```
+
+### `makeMany`
+
+The `makeMany()` method executes the factory lifecycle and returns many new instances of the given entity.
+
+Each instance is filled with the generated values from the factory lifecycle, **but not saved in the database**.
+
+> Important: You must pass the entities to the factory's `save()` method to persist the entities if desired.
+
+```typescript
+makeMany(amount: number, overrideParams: Partial<Entity> = {}): Promise<Entity>
+```
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    // get a user factory
+    const userFactory = this.factory(UserFactory)
+    // using defaults
+    const users = userFactory.makeMany(10)
+    // with email override
+    const users2 = userFactory.makeMany(10, { email: 'other@mail.com' })
+    // persist to database (optional)
+    await userFactory.save(users)
+    await userFactory.save(users2)
+  }
+}
+```
+
+### `create`
+
+The `create()` method is similar to the `make()` method,
+but at the end the generated entity instance gets persisted in
+the database using the TypeORM entity manager.
+
+```typescript
+create(overrideParams: Partial<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity>
+```
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    // get a user factory
+    const userFactory = this.factory(UserFactory)
+    // using default
+    await userFactory.create()
+    // override the email
+    await userFactory.create({ email: 'other@mail.com' })
+    // using save options
+    await userFactory.create({ email: 'other@mail.com' }, { listeners: false })
+  }
+}
+```
+
+### `createMany`
+
+The `createMany()` methods is similar to the `makeMany()` method,
+but at the end the generated entity instances gets persisted in
+the database using the TypeORM entity manager.
+
+```typescript
+createMany(amount: number, overrideParams: Partial<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity>
+```
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    // get a user factory
+    const userFactory = this.factory(UserFactory)
+    // using default
+    await userFactory.createMany(10)
+    // override the email
+    await userFactory.createMany(10, { email: 'other@mail.com' })
+    // using save options
+    await userFactory.createMany(10, { email: 'other@mail.com' }, { listeners: false })
+  }
+}
+```
 
 ### `map`
 
-Use the `.map()` function to alter the generated value before they get processed.
+Use the `.map()` function to alter the generated value for each entity.
+
+This is especially useful for setting different data for each generated entity with `makeMany()` and `createMany()`,
+compared to `overrideParams` which sets the same data for all generated entities.
 
 ```typescript
 map(mapFunction: (entity: Entity) => void): Factory
 ```
 
 ```typescript
-import { seedingSource } from './my-module'
+import { faker } from '@faker-js/faker'
 
-new UserFactory({ seedingSource }).map((user) => {
-  user.name = 'Jane'
-})
-```
-
-### `finalize`
-
-This method can be overridden to customize how the entity is finalized.
-It is called at the end of the entity generation lifecycle, giving one last opportunity to set defaults or perform data validation, etc.
-
-```typescript
-import { seedingSource } from './my-module'
-
-protected async finalize(pet: Pet): Promise<void> {
-  if (!pet.owner) {
-    pet.owner = await new UserFactory({ seedingSource }).create()
+export class UserSeeder extends Seeder {
+  async run() {
+    await this.factory(UserFactory)
+      .map((user) => {
+        user.favoriteColor = faker.color.human()
+      })
+      .createMany(10)
   }
 }
 ```
 
-### `make` & `makeMany`
+### `factory`
 
-Make and makeMany executes the factory functions and return a new instance of the given entity. The instance is filled with the generated values from the factory function, but not saved in the database.
+Use the `.factory()` utility method to get an instance of a `Factory` class dependency.
 
-- **overrideParams** - Override some of the attributes of the entity.
+This is the recommended way to obtain a factory instance,
+as it automatically sets the seeding source,
+as well as supports the factory overrides api.
+
+> The seeding source of the calling Factory is automatically set on the new factory.
 
 ```typescript
-make(overrideParams: Partial<Entity> = {}): Promise<Entity>
-makeMany(amount: number, overrideParams: Partial<Entity> = {}): Promise<Entity>
+factory<T>(factory: ClassConstructor<ExtractFactory<T>>): ExtractFactory<T>
 ```
 
 ```typescript
-import { seedingSource } from './my-module'
-
-// new factory
-const userFactory = new UserFactory({ seedingSource })
-
-// using defaults
-const user = userFactory.make()
-const users = userFactory.makeMany(10)
-
-// override the email
-const user = userFactory.make({ email: 'other@mail.com' })
-const users = userFactory.makeMany(10, { email: 'other@mail.com' })
-```
-
-### `create` & `createMany`
-
-the create and createMany method is similar to the make and makeMany method, but at the end the created entity instance gets persisted in the database using TypeORM entity manager.
-
-- **overrideParams** - Override some of the attributes of the entity.
-- **saveOptions** - [Save options](https://github.com/typeorm/typeorm/blob/master/src/repository/SaveOptions.ts) from TypeORM
-
-```typescript
-create(overrideParams: Partial<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity>
-createMany(amount: number, overrideParams: Partial<Entity> = {}, saveOptions?: SaveOptions): Promise<Entity>
-```
-
-```typescript
-import { seedingSource } from './my-module'
-
-// new factory
-const userFactory = new UserFactory({ seedingSource })
-
-// using default
-const user = await userFactory.create()
-const users = await userFactory.createMany(10)
-
-// override the email
-const user = await userFactory.create({ email: 'other@mail.com' })
-const users = await userFactory.createMany(10, { email: 'other@mail.com' })
-
-// using save options
-const user = await userFactory.create({ email: 'other@mail.com' }, { listeners: false })
-const users = await userFactory.createMany(10, { email: 'other@mail.com' }, { listeners: false })
-```
-
-### Execution order
-
-As the order of execution can be complex, you can check it here:
-
-1. **Map function**: Map function alters the already existing entity.
-2. **Override params**: Alters the already existing entity.
-3. **finalize method**: Last chance to set missing attributes or do data validation.
-4. **Promises**: If some attribute is a promise, the promise will be resolved before the entity is created.
-5. **Factories**: If some attribute is a factory, the factory will be executed with `make`/`create` like the previous one.
-
-### Faker
-
-[Faker](https://github.com/marak/Faker.js/) package was previously a dependency of the project,
-but now it is optional due to its size. If you want to use faker, you may need to install it and import it.
-
-```typescript
-import { faker } from '@faker-js/faker'
-
 class UserFactory extends Factory<User> {
   protected options = {
     entity: User,
   }
 
-  protected entity(user: User): User {
-    user.name = faker.name.firstName()
-    user.lastname = faker.name.lastName()
-
+  protected async entity(user: User): Promise<User> {
+    user.name = 'John'
+    user.lastname = 'Doe'
+    user.pet = await this.factory(PetFactory).create()
     return user
   }
 }
 ```
 
-## Seeder
+### `save`
 
-Seeder class is how we provide a way to insert data into databases,
-and could be executed by the command line or by helper method.
+Use the `.save()` utility method to persist entities to the database, that were not automatically persisted.
 
-It is an abstract class with one method to be implemented, and a helper function to run some more seeder sequentially.
+```typescript
+async save(entity: Entity, saveOptions?: SaveOptions): Promise<Entity>
+async save(entities: Entity[], saveOptions?: SaveOptions): Promise<Entity[]>
+```
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    const userFactory = this.factory(UserFactory)
+    const user = await userFactory.make()
+    await userFactory.save(user)
+  }
+}
+```
+
+### Lifecycle Steps
+
+The complete factory lifecycle is explained in the following table.
+
+| Priority | Step             |                                                                                         |
+| -------- | ---------------- | --------------------------------------------------------------------------------------- |
+| 1        | `map()`          | Entity is passed to map function (if provided)                                          |
+| 2        | `paramOverrides` | Param overrides passed to `make()`, `makeMany()`,`create()`, `createMany()` are applied |
+| 3        | `Promises`       | Entity attributes which are promises are resolved                                       |
+| 4        | `Factories`      | Entity attributes which are factory instances are executed (`.make()` or `.create()`).  |
+| 5        | `finalize()`     | Entity is passed to finalize. No further processing is done after this.                 |
+
+## Seeder Class
+
+The Seeder class provides a way to orchestrate the use of factories to insert data into the database.
+
+It is an abstract class with one method to be implemented: `run()`.
+
+> **Note:** Seeder classes are required for seeding from the CLI.
+> However, you can create your own seeding scripts using only Factory classes.
 
 ```typescript
 class UserSeeder extends Seeder {
   async run() {
-    // ...
+    // use factories to generate and persist entities
+    await this.factory(UserFactory).createMany(10)
   }
 }
 ```
 
 ### `run`
 
-This function is the one that needs to be defined when extending the class. Could use `call` to run some other seeders.
+This function must be defined when extending the class.
 
 ```typescript
 run(): Promise<void>
@@ -336,24 +464,80 @@ run(): Promise<void>
 
 ```typescript
 async run() {
-    await new UserFactory({ seedingSource: this.seedingSource }).createMany(10)
-    await this.call([PetSeeder])
+    await this.factory(UserFactory).createMany(10)
+}
+```
+
+## Seeder Usage
+
+### `factory`
+
+Use the `.factory()` utility method to get an instance of a `Factory` class.
+
+This is the recommended way to obtain a factory instance,
+as it automatically sets the seeding source,
+as well as supports the factory overrides api.
+
+> The seeding source of the calling Seeder is automatically set on the returned factory.
+
+```typescript
+factory<T>(factory: ClassConstructor<ExtractFactory<T>>): ExtractFactory<T>
+```
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    const userFactory = this.factory(UserFactory)
+    await userFactory.create()
+  }
 }
 ```
 
 ### `call`
 
-This function allow to run some other seeders in a sequential way.
+This method enables you to create a tree structure of seeders.
 
-In order to use seeders from cli command, a default seeder class must be provided as root seeder, working as a tree structure.
+```typescript
+protected async call(seeders?: SeederInstanceOrClass[]): Promise<void>
+```
+
+Call one or more seeders explicitly.
+
+```typescript
+export class UserSeeder extends Seeder {
+  async run() {
+    await this.factory(UserFactory).createMany(10)
+    await this.call([PetSeeder])
+  }
+}
+```
+
+Call one or more seeders via options.
+
+> This seeder is now eligible for seeder overrides.
+
+```typescript
+export class UserSeeder extends Seeder {
+  protected options: {
+    seeders: [PetSeeder]
+  }
+
+  async run() {
+    await this.factory(UserFactory).createMany(10)
+    await this.call()
+  }
+}
+```
+
+> If your seeders use a tree structure, you can use the `defaultSeeders` option to determine the entry point(s) of your seeder tree(s)
 
 <p align="center">
   <img src="./seeders.png" alt="logo" />
 </p>
 
-## CLI Configuration
+## CLI
 
-There are two possible commands to execute, one to see the current configuration and one to run a seeder.
+There are two possible commands to execute, one to see the current configuration and one to run seeders.
 
 Add the following scripts to your `package.json` file to configure them.
 
@@ -366,7 +550,7 @@ Add the following scripts to your `package.json` file to configure them.
 
 ### `config`
 
-This command just prints the seeder configuration.
+This command prints the seeder configuration.
 
 ```bash
 typeorm-seeding config
@@ -377,7 +561,8 @@ Example result
 ```
 {
   seeders: [ [class User], [class Pet] ],
-  defaultSeeders: [ [class AppSeeder] ]
+  defaultSeeders: [ [class AppSeeder] ],
+  dataSource: [ [class DataSource] ]
 }
 ```
 
@@ -390,7 +575,7 @@ Example result
 
 ### `seed`
 
-This command execute a seeder, that could be specified as a parameter.
+This command executes your seeder(s).
 
 ```bash
 typeorm-seeding seed
@@ -398,20 +583,34 @@ typeorm-seeding seed
 
 ##### Options
 
-| Option                    | Default         | Description                                              |
-| ------------------------- | --------------- | -------------------------------------------------------- |
-| `--root` or `-r`          | `process.cwd()` | Path to the project root                                 |
-| `--seedingSource` or `-c` |                 | Relative path to the seeding config from `root`.         |
-| `--dataSource` or `-d`    |                 | Relative path to TypeORM data source config from `root`. |
-| `--seed` or `-s`          |                 | Run a specific seeder class to run individually.         |
+| Option                    | Default         | Description                                                |
+| ------------------------- | --------------- | ---------------------------------------------------------- |
+| `--root` or `-r`          | `process.cwd()` | Path to the project root                                   |
+| `--seedingSource` or `-c` |                 | Relative path to the seeding config from `root`.           |
+| `--dataSource` or `-d`    |                 | Relative path to TypeORM data source config from `root`.   |
+| `--seed` or `-s`          |                 | One or more specific seeder class(es) to run individually. |
 
-## Testing Features
+## Unit Testing
 
-To make seeding your unit tests a simple task, the `Runner` class is provided on `SeedingSource`.
+The unit testing features allow you to use Factories and Seeders completely independently of the CLI.
+
+SeedingSources and DataSources can be instanitated at run time and directly injected into Factories and Seeders.
+
+Additionally, you can override Factory and Seeder dependencies via class and constructor options.
+
+### Runner
+
+To seed your unit tests with Seeders, a `Runner` class instance is provided on `SeedingSource`.
 
 To run one or more seeders with one command, use the `SeedingSource.runner` instance.
 
-### Seeders
+#### `SeedingSource.runner.all`
+
+Execute all seeders.
+
+```typescript
+SeedingSource.runner.all(): Promise<void>
+```
 
 #### `SeedingSource.runner.one`
 
@@ -452,6 +651,61 @@ const factory = new UserFactory({ seedingSource })
 const user = await factory.create()
 ```
 
+If a factory gets a `Factory` dependency with the `factory()` method, you can override it using the overrides api.
+
+```typescript
+import { faker } from '@faker-js/faker'
+import { seedingSource } from './my-module'
+
+class UserFactory extends Factory<User> {
+  protected options = {
+    entity: User,
+  }
+
+  protected async entity(user: User): Promise<User> {
+    user.name = 'John'
+    user.lastname = 'Doe'
+    user.pet = await this.factory(PetFactory).create()
+    return user
+  }
+}
+
+class PetFactory2 extends Factory<Pet> {
+  protected options = {
+    entity: Pet,
+    override: PetFactory,
+  }
+
+  async entity(pet: Pet) {
+    pet.color = faker.color.human()
+    return pet
+  }
+}
+
+const factory = new UserFactory({
+  seedingSource,
+  factories: [new PetFactory2()],
+})
+
+// PetFactory2 is used to generate Pet entities
+const user = await factory.create()
+```
+
+All `Factory` overrides are supported via the constructor for just-in-time operations.
+
+```typescript
+constructor(optionOverrides?: FactoryOptionsOverrides<Entity>);
+```
+
+```typescript
+interface FactoryOptionsOverrides<T, SF = any> {
+  entity?: ClassConstructor<T>
+  factories?: ExtractFactory<SF>[]
+  override?: ClassConstructor<Factory<any>>
+  seedingSource?: SeedingSource
+}
+```
+
 ### Seeders
 
 Seeders can be used stand alone if you explicitly pass a SeedingSource instance option to the constructor.
@@ -461,4 +715,89 @@ import { seedingSource } from './my-module'
 
 const userSeeder = new UserSeeder({ seedingSource })
 await userSeeder.run()
+```
+
+If a seeder gets a `Factory` dependency with the `factory()` method, you can override it using the overrides api.
+
+```typescript
+import { faker } from '@faker-js/faker'
+import { seedingSource } from './my-module'
+
+export class UserSeeder extends Seeder {
+  async run() {
+    await this.factory(UserFactory).createMany(10)
+  }
+}
+
+class UserFactory2 extends Factory<User> {
+  protected options = {
+    entity: User,
+    override: UserFactory,
+  }
+
+  async entity(user: User) {
+    user.favoriteColor = faker.color.human()
+    return user
+  }
+}
+
+const userSeeder = new UserSeeder({
+  seedingSource,
+  factories: [new UserFactory2()],
+})
+
+// UserFactory2 is used to generate User entities
+await userSeeder.run()
+```
+
+If a seeder has the seeders options set, you can override them using the overrides api.
+
+> Important: When you override seeders, the entire list of seeders options is replaced, NOT merged.
+
+```typescript
+import { faker } from '@faker-js/faker'
+import { seedingSource } from './my-module'
+
+export class UserSeeder extends Seeder {
+  protected options: {
+    seeders: [PetSeeder, FoodSeeder]
+  }
+
+  async run() {
+    await this.factory(UserFactory).createMany(10)
+    await this.call()
+  }
+}
+
+export class PetSeederOverride extends Seeder {
+  async run() {
+    await this.factory(PetFactory)
+      .map((pet) => {
+        pet.color = faker.color.human()
+      })
+      .createMany(20)
+  }
+}
+
+const userSeeder = new UserSeeder({
+  seedingSource,
+  seeders: [PetSeederOverride],
+})
+
+// UserSeeder and PetSeederOverride are executed, FoodSeeder is NOT
+await userSeeder.run()
+```
+
+All `Seeder` overrides are supported via the constructor for just-in-time operations.
+
+```typescript
+constructor(optionOverrides?: SeederOptionsOverrides);
+```
+
+```typescript
+interface SeederOptionsOverrides<SF = any> {
+  seeders?: SeederInstanceOrClass[]
+  factories?: ExtractFactory<SF>[]
+  seedingSource?: SeedingSource
+}
 ```

@@ -1,18 +1,12 @@
-import { Pet } from '../entities/Pet.entity'
 import { PetFactory } from '../factories/pet.factory'
 import { Seeder } from '../../../src/seeder'
+import { SeederOptions } from '../../../src/types'
 
-type PetEntities = { pet: Pet }
-
-export class PetSeeder extends Seeder<PetEntities> {
-  protected options = {
-    factories: {
-      pet: new PetFactory(),
-    },
-  }
+export class PetSeeder extends Seeder {
+  protected options: SeederOptions = {}
 
   async run() {
-    const petFactory = this.factory('pet')
+    const petFactory = this.factory(PetFactory)
     await petFactory.createMany(10)
   }
 }

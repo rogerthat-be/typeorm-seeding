@@ -1,7 +1,5 @@
-import { FactoriesConfiguration, SeederInstanceOrClass, SeederOptions } from './types'
+import { ClassConstructor, ExtractFactory, SeederInstanceOrClass, SeederOptions, SeederOptionsOverrides } from './types'
 
-import { Factory } from './factory'
-import { ObjectLiteral } from 'typeorm'
 import { SeedingSource } from './seeding-source'
 import { resolveFactory } from './utils/resolve-factory.util'
 import { resolveSeeders } from './utils/resolve-seeders.util'
@@ -9,29 +7,29 @@ import { resolveSeeders } from './utils/resolve-seeders.util'
 /**
  * Seeder
  */
-export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
+export abstract class Seeder {
   /**
    * Options
    */
-  protected options: SeederOptions<Entities> = {}
+  protected options: SeederOptions = {}
 
   /**
    * Constructor
    *
-   * @param overrides option overrides
+   * @param optionOverrides option overrides
    */
-  constructor(private overrides: Partial<SeederOptions<Entities>> = {}) {}
+  constructor(private optionOverrides: SeederOptionsOverrides = {}) {}
 
   get seedingSource() {
-    if (this.overrides.seedingSource instanceof SeedingSource) {
-      return this.overrides.seedingSource
+    if (this.optionOverrides.seedingSource instanceof SeedingSource) {
+      return this.optionOverrides.seedingSource
     } else {
       throw new Error(`SeedingSource options was not set for Seeder ${Object.getPrototypeOf(this).constructor.name}`)
     }
   }
 
   set seedingSource(seedingSource: SeedingSource) {
-    this.overrides.seedingSource = seedingSource
+    this.optionOverrides.seedingSource = seedingSource
   }
 
   /**
@@ -44,18 +42,16 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    *
    * @param seeders Array of seeders to run
    */
-  protected async call(seeders: SeederInstanceOrClass[] = []): Promise<void> {
+  protected async call(seeders?: SeederInstanceOrClass[]): Promise<void> {
     const seedersToRun = this.seeders(seeders)
     await this.seedingSource.runner.many(seedersToRun)
   }
 
   /**
-   * Return an instance of the factory for the given key.
-   *
-   * @param key key of factory to return
+   * Return an instance of the factory for the given factory class.
    */
-  public factory<K extends keyof FactoriesConfiguration<Entities>>(key: K): Factory<Entities[K]> {
-    return resolveFactory(this.seedingSource, key, this.options.factories, this.overrides.factories)
+  factory<T>(factory: ClassConstructor<ExtractFactory<T>>): ExtractFactory<T> {
+    return resolveFactory(factory, this.optionOverrides.factories, this.seedingSource)
   }
 
   /**
@@ -69,12 +65,12 @@ export abstract class Seeder<Entities extends ObjectLiteral = ObjectLiteral> {
    * 2. Seeders passed as overrides
    * 3. Seeders set as class options
    */
-  protected seeders(seeders: SeederInstanceOrClass[] = []): Seeder[] {
-    const whichSeeders = seeders.length
+  protected seeders(seeders?: SeederInstanceOrClass[]): Seeder[] {
+    const whichSeeders = seeders
       ? seeders
-      : this.overrides.seeders?.length
-      ? this.overrides.seeders
-      : this.options.seeders?.length
+      : this.optionOverrides.seeders
+      ? this.optionOverrides.seeders
+      : this.options.seeders
       ? this.options.seeders
       : []
 

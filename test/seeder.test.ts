@@ -1,7 +1,9 @@
 import type { DataSource } from 'typeorm'
 import { Factory } from '../src/factory'
+import { FactoryOptions } from '../src/types'
 import { Pet } from './__fixtures__/entities/Pet.entity'
 import { Pet2 } from './__fixtures__/entities/Pet2.entity'
+import { PetFactory } from './__fixtures__/factories/pet.factory'
 import { PetSeeder } from './__fixtures__/seeders/pet.seeder'
 import { Seeder } from '../src/seeder'
 import { SeedingSource } from '../src/seeding-source'
@@ -42,26 +44,34 @@ describe(Seeder, () => {
 
   describe(Seeder.prototype.run, () => {
     test('Should seed users with overrides', async () => {
-      class PetFactory2 extends Factory<Pet2, { user: User2 }> {
-        protected options = { entity: Pet2, subFactories: { user: new UserFactory() } }
+      class PetFactory2 extends Factory<Pet2> {
+        protected options: FactoryOptions<Pet2> = {
+          entity: Pet2,
+          override: PetFactory,
+        }
 
         protected async entity(pet: Pet2): Promise<Pet2> {
-          pet.name = 'Fluggy'
-          const user = await this.subFactory('user').create()
+          pet.name = 'Fluffy'
+          const userFactory = this.factory(UserFactory)
+          const user = await userFactory.create()
           pet.owner = user
 
           return pet
         }
       }
 
+      const userFactory = new UserFactory({ entity: User2 })
+
+      const petFactory2 = new PetFactory2({
+        factories: [userFactory],
+      })
+
       await new UserSeeder({
         seedingSource,
-        factories: { user: new UserFactory({ entity: User2 }) },
+        factories: [userFactory],
         seeders: [
           new PetSeeder({
-            factories: {
-              pet: new PetFactory2({ subFactories: { user: new UserFactory({ entity: User2 }) } }),
-            },
+            factories: [petFactory2],
           }),
         ],
       }).run()

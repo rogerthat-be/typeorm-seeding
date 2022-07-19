@@ -1,37 +1,45 @@
-import type { DataSource, DataSourceOptions, ObjectLiteral } from 'typeorm'
+import type { DataSource, DataSourceOptions } from 'typeorm'
 
 import { Factory } from './factory'
 import { Seeder } from './seeder'
 import { SeedingSource } from './seeding-source'
 
-export type ClassConstructor<T> = new () => T
+export type ClassConstructor<T> = new (...args: any[]) => T
 
-export interface SeederConstructor {
-  new (overrides?: Partial<SeederOptions>): Seeder
-}
+export type InstanceOrClass<T = any> = T | ClassConstructor<T>
 
-export type SeederInstanceOrClass = Seeder | SeederConstructor
+export type ExtractFactory<F> = F extends Factory<infer E> ? F : never
 
-export interface SeederOptions<Entities extends ObjectLiteral = ObjectLiteral> {
-  seedingSource?: SeedingSource
-  factories?: FactoriesConfiguration<Entities>
+export type FactoryInstanceOrClass<T> = InstanceOrClass<Factory<T>>
+
+export type SeederInstanceOrClass = InstanceOrClass<Seeder>
+
+export interface SeederOptions {
   seeders?: SeederInstanceOrClass[]
-}
-
-export interface FactoryOptions<T, Entities extends ObjectLiteral> {
   seedingSource?: SeedingSource
+}
+
+export interface SeederOptionsOverrides<SF = any> {
+  seeders?: SeederInstanceOrClass[]
+  factories?: ExtractFactory<SF>[]
+  seedingSource?: SeedingSource
+}
+
+export interface FactoryOptions<T> {
   entity?: ClassConstructor<T>
-  subFactories?: FactoriesConfiguration<Entities>
+  seedingSource?: SeedingSource
+  override?: ClassConstructor<Factory<any>>
 }
 
-export type FactoryInstanceOrClass<T> = Factory<T> | ClassConstructor<Factory<T>>
-
-export type FactoriesConfiguration<T extends ObjectLiteral = ObjectLiteral> = {
-  [K in keyof T]?: FactoryInstanceOrClass<T[K]>
+export interface FactoryOptionsOverrides<T, SF = any> {
+  entity?: ClassConstructor<T>
+  factories?: ExtractFactory<SF>[]
+  seedingSource?: SeedingSource
+  override?: ClassConstructor<Factory<any>>
 }
 
-export type SeedingSourceOptions = {
+export interface SeedingSourceOptions {
   dataSource: DataSource | DataSourceOptions
-  seeders: ClassConstructor<Seeder>[]
-  defaultSeeders: ClassConstructor<Seeder>[]
+  seeders?: ClassConstructor<Seeder>[]
+  defaultSeeders?: ClassConstructor<Seeder>[]
 }

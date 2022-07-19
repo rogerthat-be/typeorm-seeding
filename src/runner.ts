@@ -9,6 +9,16 @@ import { resolveSeeders } from './utils/resolve-seeders.util'
 export class Runner {
   constructor(readonly seedingSource: SeedingSource) {}
 
+  async all(): Promise<void> {
+    return this.many(this.seedingSource.seeders)
+  }
+
+  async defaults(): Promise<void> {
+    if (this.seedingSource.defaultSeeders) {
+      return this.many(this.seedingSource.defaultSeeders)
+    }
+  }
+
   async one(seeder: SeederInstanceOrClass): Promise<void> {
     return this.many([seeder])
   }
@@ -19,11 +29,6 @@ export class Runner {
     for (const seederToRun of seedersToRun) {
       await seederToRun.run()
     }
-  }
-
-  async defaults(): Promise<void> {
-    const seeders = this.seedingSource.defaultSeeders
-    return this.many(seeders)
   }
 
   async fromString(classNameString: string): Promise<void> {

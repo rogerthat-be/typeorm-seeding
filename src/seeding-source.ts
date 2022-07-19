@@ -32,10 +32,10 @@ export class SeedingSource {
   }
 
   get seeders(): ClassConstructor<Seeder>[] {
-    return this.options.seeders
+    return this.options.seeders ?? []
   }
 
-  get defaultSeeders(): ClassConstructor<Seeder>[] {
+  get defaultSeeders(): ClassConstructor<Seeder>[] | undefined {
     return this.options.defaultSeeders
   }
 
@@ -59,17 +59,23 @@ export class SeedingSource {
   }
 
   private resolveSeeder(seederClassName: string): ClassConstructor<Seeder> {
-    // try to find in seeders option
-    const seeder = this.options.seeders.find((seeder) => seeder.name === seederClassName)
-    // find one?
-    if (seeder) {
-      // yes, return it
-      return seeder
+    // any seeders configured?
+    if (this.options.seeders) {
+      // try to find in seeders option
+      const seeder = this.options.seeders.find((seeder) => seeder.name === seederClassName)
+      // find one?
+      if (seeder) {
+        // yes, return it
+        return seeder
+      } else {
+        // not good :(
+        throw new SeederImportException(
+          `Seeder class ${seederClassName} was not found in "seeders" configuration property`,
+        )
+      }
     } else {
       // not good :(
-      throw new SeederImportException(
-        `Seeder class ${seederClassName} was not found in "seeders" configuration property`,
-      )
+      throw new SeederImportException(`No seeders have been configured!`)
     }
   }
 

@@ -1,36 +1,31 @@
-import { FactoriesConfiguration, FactoryInstanceOrClass } from '../types'
+import { ClassConstructor, ExtractFactory } from '../types'
 
 import { Factory } from '../factory'
 import { SeedingSource } from '../seeding-source'
 
 /**
- * Resolve Factory class or type and return Factory instance for given configuration key.
- *
- * @param key factory configuration key
- * @param factories factories default config
- * @param factoryOverrides factory overrides config
+ * Resolve Factory class or type and return Factory instance for given class.
  */
-export function resolveFactory<Entities, K extends keyof FactoriesConfiguration<Entities>>(
+export function resolveFactory<Needle, Haystack>(
+  factory: ClassConstructor<ExtractFactory<Needle>>,
+  factoryOverrides: ExtractFactory<Haystack>[] = [],
   seedingSource: SeedingSource,
-  key: K,
-  factories: FactoriesConfiguration<Entities> = {},
-  factoryOverrides: FactoriesConfiguration<Entities> = {},
-): Factory<Entities[K]> {
-  // merge overrides on top of defaults
-  const mergedFactories: FactoriesConfiguration<Entities> = { ...factories, ...factoryOverrides }
+): ExtractFactory<Needle | Haystack> {
+  // try to get the factory for given class
+  const factoryOverridden: ExtractFactory<Haystack> | undefined = factoryOverrides.reverse().find((factoryOverride) => {
+    if (factoryOverride instanceof Factory) {
+      return factoryOverride.overrides === factory.prototype.constructor
+    } else {
+      return false
+    }
+  })
 
-  // try to get the factory for given key
-  const factory: FactoryInstanceOrClass<Entities[K]> | undefined = mergedFactories[key] ?? undefined
+  // the factory we will return
+  const factoryToReturn: ExtractFactory<Needle | Haystack> = factoryOverridden ? factoryOverridden : new factory()
 
-  if (factory !== undefined) {
-    // the factory we will return
-    const factoryToReturn = factory instanceof Factory ? factory : new factory()
-    // set the seeding source
-    factoryToReturn.seedingSource = seedingSource
-    // return it
-    return factoryToReturn
-  }
+  // set the seeding source
+  factoryToReturn.seedingSource = seedingSource
 
-  // factory for given key was not found
-  throw new Error(`Factory for ${String(key)} is not configured`)
+  // return it
+  return factoryToReturn
 }

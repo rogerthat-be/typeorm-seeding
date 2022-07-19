@@ -109,10 +109,14 @@ export class SeedCommand implements CommandModule {
       // yes, parse and attempt to import
       seeders = seedingSource.seedersFromString(args.seed)
       spinner.info(`Specific seeder(s) have been requested`)
-    } else {
-      // no, fall back to defaults
+    } else if (seedingSource.defaultSeeders) {
+      // have defaults, use those
       seeders = seedingSource.defaultSeeders
       spinner.info(`Default seeders will used`)
+    } else {
+      // falling back to using all seeders
+      seeders = seedingSource.seeders
+      spinner.info(`All seeders will used`)
     }
 
     // here we go
