@@ -16,7 +16,6 @@ export type SeederInstanceOrClass = InstanceOrClass<Seeder>
 
 export interface SeederOptions {
   seeders?: SeederInstanceOrClass[]
-  seedingSource?: SeedingSource
 }
 
 export interface SeederOptionsOverrides<SF = any> {
@@ -27,7 +26,6 @@ export interface SeederOptionsOverrides<SF = any> {
 
 export interface FactoryOptions<T> {
   entity?: ClassConstructor<T>
-  seedingSource?: SeedingSource
   override?: ClassConstructor<Factory<any>>
 }
 
