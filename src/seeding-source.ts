@@ -39,16 +39,6 @@ export class SeedingSource {
     return this.options.defaultSeeders
   }
 
-  configure(options: Partial<SeedingSourceOptions>) {
-    this.options = { ...this.options, ...options }
-    this._dataSource = undefined
-  }
-
-  reconfigure(options: SeedingSourceOptions) {
-    this.options = options
-    this._dataSource = undefined
-  }
-
   seedersFromString(seederNameString = ''): ClassConstructor<Seeder>[] {
     // resolve the seeders
     return this.resolveSeeders(seederNameString)
