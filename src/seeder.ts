@@ -51,7 +51,7 @@ export abstract class Seeder {
    * Return an instance of the factory for the given factory class.
    */
   factory<T>(factory: ClassConstructor<ExtractFactory<T>>): ExtractFactory<T> {
-    return resolveFactory(factory, this.optionOverrides.factories, this.seedingSource)
+    return resolveFactory(this.seedingSource, factory, this.optionOverrides.factories)
   }
 
   /**

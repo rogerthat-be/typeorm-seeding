@@ -7,9 +7,9 @@ import { SeedingSource } from '../seeding-source'
  * Resolve Factory class or type and return Factory instance for given class.
  */
 export function resolveFactory<Needle, Haystack>(
+  seedingSource: SeedingSource,
   factory: ClassConstructor<ExtractFactory<Needle>>,
   factoryOverrides: ExtractFactory<Haystack>[] = [],
-  seedingSource: SeedingSource,
 ): ExtractFactory<Needle | Haystack> {
   // try to get the factory for given class
   const factoryOverridden: ExtractFactory<Haystack> | undefined = factoryOverrides.reverse().find((factoryOverride) => {
