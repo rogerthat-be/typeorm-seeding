@@ -125,7 +125,7 @@ export class SeedCommand implements CommandModule {
 
     // run seeders
     try {
-      await seedingSource.runner.many(seeders)
+      await seedingSource.run.many(seeders)
       spinner.succeed(`Seeders ${seedersNames} executed`)
     } catch (error) {
       return panic(spinner, error, `Failed to run the ${seedersNames} seeders!`)

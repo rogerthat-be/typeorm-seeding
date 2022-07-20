@@ -10,7 +10,7 @@ export class SeedingSource {
   /**
    * This seeding source's config manager
    */
-  readonly runner: Runner = new Runner(this)
+  readonly run: Runner = new Runner(this)
 
   private _dataSource: DataSource | undefined
 

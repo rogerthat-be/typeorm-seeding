@@ -44,7 +44,7 @@ export abstract class Seeder {
    */
   protected async call(seeders?: SeederInstanceOrClass[]): Promise<void> {
     const seedersToRun = this.seeders(seeders)
-    await this.seedingSource.runner.many(seedersToRun)
+    await this.seedingSource.run.many(seedersToRun)
   }
 
   /**

@@ -598,46 +598,46 @@ SeedingSources and DataSources can be instanitated at run time and directly inje
 
 Additionally, you can override Factory and Seeder dependencies via class and constructor options.
 
-### Runner
+### Runner Class
 
 To seed your unit tests with Seeders, a `Runner` class instance is provided on `SeedingSource`.
 
-To run one or more seeders with one command, use the `SeedingSource.runner` instance.
+To run one or more seeders with one command, use the `SeedingSource.run` instance.
 
-#### `SeedingSource.runner.all`
+#### `SeedingSource.run.all`
 
 Execute all seeders.
 
 ```typescript
-SeedingSource.runner.all(): Promise<void>
+SeedingSource.run.all(): Promise<void>
 ```
 
-#### `SeedingSource.runner.one`
+#### `SeedingSource.run.one`
 
 Execute one seeder.
 
 ```typescript
-SeedingSource.runner.one(
+SeedingSource.run.one(
   seeder: SeederInstanceOrClass,
 ): Promise<void>
 ```
 
-#### `SeedingSource.runner.many`
+#### `SeedingSource.run.many`
 
 Execute many seeders.
 
 ```typescript
-SeedingSource.runner.many(
+SeedingSource.run.many(
   seeders: SeederInstanceOrClass[],
 ): Promise<void>
 ```
 
-#### `SeedingSource.runner.defaults`
+#### `SeedingSource.run.defaults`
 
 Execute all default seeders.
 
 ```typescript
-SeedingSource.runner.defaults(): Promise<void>
+SeedingSource.run.defaults(): Promise<void>
 ```
 
 ### Factories

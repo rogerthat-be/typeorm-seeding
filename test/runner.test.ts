@@ -23,7 +23,7 @@ describe(Runner, () => {
   })
 
   test(`Should seed with only one seeder provided`, async () => {
-    await seedingSource.runner.one(UserSeeder)
+    await seedingSource.run.one(UserSeeder)
 
     const totalUsers = await dataSource.createEntityManager().count(User)
 
@@ -31,7 +31,7 @@ describe(Runner, () => {
   })
 
   test(`Should seed with multiple seeders provided`, async () => {
-    await seedingSource.runner.many([UserSeeder, PetSeeder])
+    await seedingSource.run.many([UserSeeder, PetSeeder])
 
     const [totalUsers, totalPets] = await Promise.all([
       dataSource.createEntityManager().count(User),
