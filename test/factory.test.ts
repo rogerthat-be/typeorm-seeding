@@ -13,7 +13,7 @@ describe(Factory, () => {
 
   beforeEach(async () => {
     seedingSource = await importSeedingSource('__fixtures__/seeding.js', __dirname)
-    await seedingSource.dataSource.initialize()
+    await seedingSource.initialize()
     userFactory = new UserFactory({ seedingSource })
     petFactory = new PetFactory({ seedingSource })
   })

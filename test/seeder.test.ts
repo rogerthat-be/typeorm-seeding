@@ -19,8 +19,8 @@ describe(Seeder, () => {
 
   beforeEach(async () => {
     seedingSource = await importSeedingSource('__fixtures__/seeding.js', __dirname)
+    await seedingSource.initialize()
     dataSource = seedingSource.dataSource
-    await dataSource.initialize()
   })
 
   afterEach(async () => {

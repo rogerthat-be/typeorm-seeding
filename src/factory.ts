@@ -118,13 +118,6 @@ export abstract class Factory<Entity> {
    */
   async save(entities: Entity | Entity[], saveOptions?: SaveOptions): Promise<Entity | Entity[]> {
     const dataSource = this.seedingSource.dataSource
-
-    // has been initialized yet?
-    if (!dataSource.isInitialized) {
-      // no, initialize it
-      await dataSource.initialize()
-    }
-
     return dataSource.createEntityManager().save(entities, saveOptions)
   }
 
