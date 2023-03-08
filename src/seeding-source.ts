@@ -19,16 +19,30 @@ export class SeedingSource {
    */
   constructor(private options: SeedingSourceOptions) {}
 
-  get dataSource(): DataSource {
+  async initialize() {
     if (!this._dataSource) {
       this._dataSource = resolveDataSource(this.options.dataSource)
     }
 
-    return this._dataSource
+    if (!this._dataSource.isInitialized) {
+      await this._dataSource.initialize()
+    }
+  }
+
+  get dataSource(): DataSource {
+    if (this._dataSource) {
+      return this._dataSource
+    } else {
+      throw new Error('DataSource not defined. Must be passed as an option or manually assigned.')
+    }
   }
 
   set dataSource(dataSource: DataSource) {
-    this._dataSource = dataSource
+    if (dataSource.isInitialized) {
+      this._dataSource = dataSource
+    } else {
+      throw new Error('DataSource must be initialized before manually assigning to SeedingSource.')
+    }
   }
 
   get seeders(): ClassConstructor<Seeder>[] {

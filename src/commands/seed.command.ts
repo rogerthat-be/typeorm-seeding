@@ -64,6 +64,8 @@ export class SeedCommand implements CommandModule {
       try {
         seedingSource = await importSeedingSource(args.seedingSource, rootPath)
         spinner.succeed(`Seeding Config ${args.seedingSource} loaded`)
+        await seedingSource.initialize()
+        spinner.succeed(`Seeding Source initialized`)
       } catch (error) {
         return panic(spinner, error, `Could not load the seeding source config file at ${args.seedingSource}!`)
       }
@@ -77,12 +79,17 @@ export class SeedCommand implements CommandModule {
 
     // data source was requested?
     if (args.dataSource) {
-      // is this an override?
-      if (seedingSource.dataSource) {
-        spinner.info(`Data Source Config will be overridden with ${args.dataSource}`)
-      }
+      // warn about override
+      spinner.info(`Data Source Config will be overridden with ${args.dataSource}`)
+      // try to import it
       try {
+        // import from file
         const dataSource = await importDataSource(args.dataSource, rootPath)
+        // maybe initialize
+        if (!dataSource.isInitialized) {
+          await dataSource.initialize()
+        }
+        // set it on seeding source
         seedingSource.dataSource = dataSource
         spinner.succeed(`Data Source Config ${args.dataSource} loaded`)
       } catch (error) {
@@ -125,6 +132,7 @@ export class SeedCommand implements CommandModule {
 
     // run seeders
     try {
+      await seedingSource.initialize()
       await seedingSource.run.many(seeders)
       spinner.succeed(`Seeders ${seedersNames} executed`)
     } catch (error) {

@@ -3,6 +3,7 @@ import { ClassConstructor, ExtractFactory, SeederInstanceOrClass, SeederOptions,
 import { SeedingSource } from './seeding-source'
 import { resolveFactory } from './utils/resolve-factory.util'
 import { resolveSeeders } from './utils/resolve-seeders.util'
+import { EntityTarget, ObjectLiteral, Repository } from 'typeorm'
 
 /**
  * Seeder
@@ -52,6 +53,13 @@ export abstract class Seeder {
    */
   factory<T>(factory: ClassConstructor<ExtractFactory<T>>): ExtractFactory<T> {
     return resolveFactory(this.seedingSource, factory, this.optionOverrides.factories)
+  }
+
+  /**
+   * Return an instance of the repository for the given entity class.
+   */
+  repository<T extends ObjectLiteral>(target: EntityTarget<T>): Repository<T> {
+    return this.seedingSource.dataSource.getRepository<T>(target)
   }
 
   /**

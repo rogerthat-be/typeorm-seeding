@@ -165,6 +165,36 @@ module.exports = new SeedingSource({
 })
 ```
 
+### Seeding Source Initialization
+
+You must initialize your `SeedingSource` instance or manually set an
+already intialized instance of `DataSource` before you make any queries.
+
+> When you are seeding via the [CLI](#cli) command, these steps are done for you automatically at runtime.
+
+#### Initialize DataSource passed via options
+
+```javascript
+// get your seeding source instance
+const { seedingSource } = require('./seeding-source')
+
+// initialize the Data Source that was passed via options
+await seedingSource.initialize()
+```
+
+#### Manually initialize DataSource and set on SeedingSource
+
+```javascript
+const { dataSource } = require('./data-source')
+const { seedingSource } = require('./seeding-source')
+
+// initialize the Data Source manually
+await dataSource.initialize()
+
+// set on the Seeding Source
+seedingSource.dataSource = dataSource
+```
+
 ## Factory Class
 
 Factory is how we provide a way to simplify entities creation, implementing a
