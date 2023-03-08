@@ -1,6 +1,6 @@
 import { ClassConstructor, ExtractFactory, FactoryOptions, FactoryOptionsOverrides } from './types'
 
-import { SaveOptions } from 'typeorm'
+import { EntityTarget, ObjectLiteral, Repository, SaveOptions } from 'typeorm'
 import { SeedingSource } from './seeding-source'
 import { isPromiseLike } from './utils/is-promise-like.util'
 import { resolveFactory } from './utils/resolve-factory.util'
@@ -186,5 +186,12 @@ export abstract class Factory<Entity> {
    */
   factory<T>(factory: ClassConstructor<ExtractFactory<T>>): ExtractFactory<T> {
     return resolveFactory(this.seedingSource, factory, this.optionOverrides.factories)
+  }
+
+  /**
+   * Return an instance of the repository for the given entity class.
+   */
+  repository<T extends Entity & ObjectLiteral>(target: EntityTarget<T>): Repository<T> {
+    return this.seedingSource.dataSource.getRepository<T>(target)
   }
 }
