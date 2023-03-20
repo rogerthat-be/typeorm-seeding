@@ -1,5 +1,5 @@
 {
-  "name": "@concepta/typeorm-seeding",
+  "name": "@rogerthat-be/typeorm-seeding",
   "version": "4.0.0-beta.1",
   "description": "A simple but powerful database seeder for TypeORM ^0.3.0",
   "license": "MIT",
@@ -10,6 +10,7 @@
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "bin": {
     "typeorm-seeding": "dist/cli.js"
   },
@@ -18,7 +19,7 @@
     "url": "https://github.com/conceptadev/typeorm-seeding.git"
   },
   "scripts": {
-    "build": "tsc --project ./tsconfig.build.json",
+    "build": "tsc --project ./tsconfig.build.json && npx fix-esm-import-path dist/**/*.js",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "format:ci": "prettier --check \"{src,test}/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\"",
@@ -37,6 +38,8 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@digitak/tsc-esm": "^3.1.4",
+    "@faker-js/faker": "^7.0.0",
     "@semantic-release/changelog": "6.0.1",
     "@semantic-release/git": "10.0.1",
     "@tsconfig/node16": "1.0.2",
@@ -53,15 +56,15 @@
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.25.4",
-    "@faker-js/faker": "^7.0.0",
+    "fix-esm-import-path": "^1.3.1",
     "jest": "27.4.7",
     "prettier": "2.5.1",
     "rimraf": "3.0.2",
     "semantic-release": "18.0.1",
-    "sqlite3": "5.0.2",
+    "sqlite3": "5.1.6",
     "ts-jest": "27.1.2",
-    "ts-node": "10.4.0",
-    "typeorm": "0.3.6",
+    "ts-node": "10.9.1",
+    "typeorm": "0.3.12",
     "typescript": "4.5.4"
   },
   "dependencies": {
@@ -69,7 +72,7 @@
     "glob": "^7.2.0",
     "ora": "^5",
     "reflect-metadata": "^0.1.13",
-    "yargs": "^17.3.0"
+    "yargs": "^17.7.1"
   },
   "peerDependencies": {
     "typeorm": "^0.3.0"

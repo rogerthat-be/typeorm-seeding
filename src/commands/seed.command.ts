@@ -1,10 +1,12 @@
-import { Arguments, Argv, CommandModule, exit } from 'yargs'
+import yargs, { Arguments, Argv, CommandModule } from 'yargs'
+const { exit } = yargs;
 import ora, { Ora } from 'ora'
 
 import { ClassConstructor } from '../types'
 import { Seeder } from '../seeder'
 import { SeedingSource } from '../seeding-source'
-import { gray } from 'chalk'
+import chalk from 'chalk'
+const { gray } = chalk
 import { importDataSource } from '../configuration/import-data-source'
 import { importSeedingSource } from '../configuration/import-seeding-source'
 

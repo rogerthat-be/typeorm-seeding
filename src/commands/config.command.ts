@@ -1,7 +1,8 @@
-import { Arguments, Argv, CommandModule, exit } from 'yargs'
-
+import yargs, { Arguments, Argv, CommandModule } from 'yargs'
+const { exit } = yargs;
 import { importSeedingSource } from '../configuration/import-seeding-source'
-import { red } from 'chalk'
+import pkg from 'chalk';
+const { red } = pkg;
 
 interface ConfigCommandArguments extends Arguments {
   root?: string
